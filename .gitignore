@@ -580,3 +580,6 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 
+example/.vscode/browse.db
+example/.vscode/browse.db-shm
+example/.vscode/browse.db-wal

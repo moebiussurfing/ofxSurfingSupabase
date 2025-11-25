@@ -1,2 +1,4 @@
 ofxGui
+ofxSurfingHelpersLite
+ofxSurfingPresetsLite
 ofxSurfingSupabase

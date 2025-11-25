@@ -4,6 +4,9 @@
 
 #include "ofMain.h"
 
+#include "ofxSurfingPresetsLiteOfxGui.h"
+#include "surfingSceneTesters.h"
+
 #include "ofxGui.h"
 #include "ofxSurfingSupabase.h"
 
@@ -15,6 +18,9 @@ public:
 	void keyPressed(int key);
 	void windowResized(int w, int h);
 	void exit();
+
+	SurfingSceneTesters scene;
+	SurfingPresetsLiteOfxGui presetsManager;
 
 private:
 	ofxPanel gui;

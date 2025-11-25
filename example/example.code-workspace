@@ -1,0 +1,24 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "${workspaceRoot}/../../../../libs/openFrameworks"
+		},
+		{
+			"path": "${workspaceRoot}/../../../ofxGui"
+		},
+		{
+			"path": "${workspaceRoot}/../../../ofxSurfingHelpersLite"
+		},
+		{
+			"path": "${workspaceRoot}/../../../ofxSurfingPresetsLite"
+		},
+		{
+			"path": "${workspaceRoot}/../.."
+		}
+	],
+	"openFrameworksProjectGeneratorVersion": "0.103.0",
+	"settings": {}
+}
