@@ -3,6 +3,7 @@
 #pragma once
 
 #include "ofMain.h"
+
 #include "ofxGui.h"
 #include "ofxSurfingSupabase.h"
 
@@ -17,6 +18,7 @@ public:
 
 private:
 	ofxPanel gui;
+	ofParameter<bool> bGui;
 
 	ofxSurfingSupabase db;
 };
