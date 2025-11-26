@@ -23,6 +23,10 @@ public:
 	SurfingPresetsLiteOfxGui presetsManager;
 
 private:
+	void setupGui();
+	void drawGui();
+	void drawHelp();
+	
 	ofxPanel gui;
 	ofParameter<bool> bGui;
 
