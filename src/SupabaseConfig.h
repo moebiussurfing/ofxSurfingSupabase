@@ -34,8 +34,14 @@ struct SupabaseConfig {
 			auto parts = ofSplitString(line, "=");
 			if (parts.size() != 2) continue;
 			
-			string key = ofTrimString(parts[0]);
-			string val = ofTrimString(parts[1]);
+			string key = parts[0];
+			string val = parts[1];
+			
+			// Trim whitespace manually
+			key.erase(0, key.find_first_not_of(" \t\r\n"));
+			key.erase(key.find_last_not_of(" \t\r\n") + 1);
+			val.erase(0, val.find_first_not_of(" \t\r\n"));
+			val.erase(val.find_last_not_of(" \t\r\n") + 1);
 			
 			if (key == "project_url") projectUrl = val;
 			else if (key == "api_key") apiKey = val;

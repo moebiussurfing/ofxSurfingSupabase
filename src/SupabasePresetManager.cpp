@@ -1,6 +1,7 @@
 // file: src/SupabasePresetManager.cpp
 
 #include "SupabasePresetManager.h"
+#include <exception>
 
 //--------------------------------------------------------------
 void SupabasePresetManager::setup(SupabaseClient* _client, const string& _userId) {
@@ -53,7 +54,7 @@ void SupabasePresetManager::refreshPresetList() {
 					info.updatedAt = item.contains("updated_at") ? item["updated_at"].get<string>() : "";
 					
 					presets.push_back(info);
-				} catch (exception& e) {
+				} catch (std::exception& e) {
 					ofLogError("SupabasePresetManager") << "Error parsing preset: " << e.what();
 				}
 			}
@@ -100,7 +101,8 @@ void SupabasePresetManager::savePreset(const string& name, const ofJson& data) {
 	client->insertAsync("presets", payload,
 		[this, name](ofJson response) {
 			ofLogNotice("SupabasePresetManager") << "Preset saved: " << name;
-			ofNotifyEvent(onPresetSaved, name);
+			string tempName = name;
+			ofNotifyEvent(onPresetSaved, tempName);
 			refreshPresetList();
 		},
 		[this, name, data](string error) {
@@ -114,7 +116,8 @@ void SupabasePresetManager::savePreset(const string& name, const ofJson& data) {
 				client->updateAsync("presets", filter, updateData,
 					[this, name]() {
 						ofLogNotice("SupabasePresetManager") << "Preset updated: " << name;
-						ofNotifyEvent(onPresetSaved, name);
+						string tempName = name;
+						ofNotifyEvent(onPresetSaved, tempName);
 						refreshPresetList();
 					},
 					[this](string updateError) {
@@ -141,7 +144,8 @@ void SupabasePresetManager::deletePreset(const string& name) {
 	client->deleteAsync("presets", filter,
 		[this, name]() {
 			ofLogNotice("SupabasePresetManager") << "Preset deleted: " << name;
-			ofNotifyEvent(onPresetDeleted, name);
+			string tempName = name;
+			ofNotifyEvent(onPresetDeleted, tempName);
 			refreshPresetList();
 		},
 		[this](string error) {

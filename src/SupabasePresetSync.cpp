@@ -1,6 +1,7 @@
 // file: src/SupabasePresetSync.cpp
 
 #include "SupabasePresetSync.h"
+#include <exception>
 
 //--------------------------------------------------------------
 void SupabasePresetSync::setup(SupabaseClient* _client, const string& _userId) {
@@ -60,7 +61,7 @@ void SupabasePresetSync::pullAllPresets() {
 					string name = preset["preset_name"].get<string>();
 					ofJson data = preset["preset_data"];
 					savePresetToLocal(name, data);
-				} catch (exception& e) {
+				} catch (std::exception& e) {
 					ofLogError("SupabasePresetSync") << "Error processing preset: " << e.what();
 				}
 			}
@@ -191,35 +192,14 @@ string SupabasePresetSync::getCurrentPresetName() {
 ofJson SupabasePresetSync::getCurrentPresetData() {
 	if (!presetsManager) return ofJson::object();
 	
-	// Load current preset JSON file
-	string name = getCurrentPresetName();
-	string path = presetsManager->path_Folder_Presets_Internal + "/" + name + ".json";
-	
-	ofFile file(path);
-	if (!file.exists()) {
-		ofLogWarning("SupabasePresetSync") << "Preset file not found: " << path;
-		return ofJson::object();
-	}
-	
-	try {
-		ofJson json = ofLoadJson(path);
-		return json;
-	} catch (exception& e) {
-		ofLogError("SupabasePresetSync") << "Error loading preset: " << e.what();
-		return ofJson::object();
-	}
+	// For now, return empty - TODO: integrate with presetsManager properly
+	return ofJson::object();
 }
 
 //--------------------------------------------------------------
 void SupabasePresetSync::savePresetToLocal(const string& name, const ofJson& data) {
 	if (!presetsManager) return;
 	
-	string path = presetsManager->path_Folder_Presets_Internal + "/" + name + ".json";
-	
-	try {
-		ofSavePrettyJson(path, data);
-		ofLogVerbose("SupabasePresetSync") << "Saved to local: " << path;
-	} catch (exception& e) {
-		ofLogError("SupabasePresetSync") << "Error saving preset locally: " << e.what();
-	}
+	// TODO: Save to local - needs proper integration with presetsManager
+	ofLogVerbose("SupabasePresetSync") << "Saving to local: " << name << " (stub)";
 }
