@@ -8,17 +8,9 @@ ofxSurfingSupabase/
 │   │   │   ├── KNOWN-BUGS.md
 │   │   │   └── TODO.md
 │   │   ├── AGENTS.md
-│   │   ├── CURRENT-STATE.md
-│   │   ├── PROJECT-CONTEXT.md
 │   │   └── RULES.md
 │   ├── CHANGELOG.md
-│   ├── COMPILATION-NOTES.md
-│   ├── IMPLEMENTATION.md
-│   ├── QUICK-START.md
-│   ├── REVISION-FINAL.md
-│   ├── SESSION-SUMMARY.md
-│   ├── SUPABASE-SETUP-CHROME.md
-│   └── USAGE.md
+│   └── DEVELOPMENT-NOTES.md
 ├── example/
 │   ├── src/
 │   │   ├── main.cpp
@@ -36,9 +28,11 @@ ofxSurfingSupabase/
 │   │   ├── ofApp.cpp
 │   │   ├── ofApp.h
 │   │   └── surfingSceneTesters.h
+│   ├── FILE-STRUCTURE.md
 │   ├── README.md
 │   ├── addons.make
-│   └── example2.code-workspace
+│   ├── example2.code-workspace
+│   └── generate-FILE-STRUCTURE.py
 ├── src/
 │   ├── SupabaseClient.cpp
 │   ├── SupabaseClient.h
@@ -54,6 +48,6 @@ ofxSurfingSupabase/
 ├── AI-AGENTS-GUIDE.md
 ├── FILE-STRUCTURE.md
 ├── README.md
-├── SUPABASE-SQL-SETUP.md
+├── SUPABASE-SETUP.md
 └── generate-FILE-STRUCTURE.py
 ```

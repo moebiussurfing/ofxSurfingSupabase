@@ -2,45 +2,79 @@
 
 **Supabase integration for openFrameworks - Remote preset management**
 
-## Features
+---
 
-✅ Email/Password & API Key authentication  
-✅ Remote JSON preset storage (PostgreSQL + jsonb)  
-✅ Real-time sync with local presets  
-✅ Pure remote mode (cloud-first, no local files)  
-✅ Browse/Load/Save/Delete from Supabase database  
-✅ ofxGui integration  
-✅ Two workflow modes: Hybrid & Pure Remote  
+## ✨ Features
+
+✅ **Email/Password authentication**  
+✅ **Remote JSON preset storage** (PostgreSQL + jsonb)  
+✅ **Two workflow modes:**
+   - **Hybrid:** Local files + Cloud sync  
+   - **Pure Remote:** Cloud-first, no local files  
+✅ **Browse/Load/Save/Delete** from database  
+✅ **ofxGui integration**  
+✅ **Direct scene parameter serialization**  
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
-### 1. Supabase Setup (Chrome)
+### 1. Setup Supabase (5 minutes)
 
-**Execute this SQL** (see `SUPABASE-SQL-SETUP.md` for details):
+See **[SUPABASE-SETUP.md](SUPABASE-SETUP.md)** for step-by-step guide:
+- Create project
+- Create `presets` table (SQL provided)
+- Create user
+- Get credentials
 
-```sql
--- Fix UPDATE policy (CRITICAL)
-DROP POLICY IF EXISTS "Users update own presets" ON presets;
-CREATE POLICY "Users update own presets"
-  ON presets FOR UPDATE
-  USING (user_id = auth.uid()::text)
-  WITH CHECK (user_id = auth.uid()::text);
-```
-
-### 2. Config File
+### 2. Configure Credentials
 
 `bin/data/credentials.txt`:
 ```
 AUTH_MODE=EMAIL_PASSWORD
 SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=your-anon-key
-EMAIL=user@example.com
+SUPABASE_ANON_KEY=eyJhbGc...your_anon_key
+EMAIL=test@ofxsurfing.com
 PASSWORD=yourpassword
 ```
 
-### 3. Code (Hybrid Mode)
+### 3. Choose Your Mode
+
+#### Option A: Pure Remote (Recommended - see example2/)
+
+**Standalone cloud preset system:**
+
+```cpp
+#include "ofxSurfingSupabase.h"
+#include "surfingSceneTesters.h"
+
+class ofApp : public ofBaseApp {
+    SurfingSceneTesters scene;
+    ofxSurfingSupabase db;
+    
+    void setup() {
+        scene.setup();
+        db.setup();
+        db.setupSceneParams(scene.params);
+        db.bRemoteMode = true; // Pure remote
+    }
+    
+    void draw() {
+        db.draw(); // Shows connection status + UI
+    }
+};
+```
+
+**Workflow:**
+- Adjust scene parameters
+- Click **"Save Scene Direct"** → Uploads to Supabase
+- Browse with **◀ ▶** buttons
+- Click **"Load & Apply"** → Restore from cloud
+- **NO local JSON files** created
+
+#### Option B: Hybrid (Local + Cloud - see example/)
+
+**With ofxSurfingPresetsLite integration:**
 
 ```cpp
 #include "ofxSurfingSupabase.h"
@@ -57,75 +91,108 @@ class ofApp : public ofBaseApp {
     }
     
     void draw() {
-        db.draw(); // UI panel
-    }
-};
-```
-
-### 4. Code (Pure Remote Mode)
-
-```cpp
-#include "ofxSurfingSupabase.h"
-
-class ofApp : public ofBaseApp {
-    SurfingSceneSimple scene;
-    ofxSurfingSupabase db;
-    
-    void setup() {
-        scene.setup();
-        db.setup();
-        db.setupSceneParams(scene.params); // Direct link
-        db.bRemoteMode = true; // Enable pure remote
-    }
-    
-    void draw() {
+        presetsManager.drawGui();
         db.draw();
     }
 };
 ```
 
+**Workflow:**
+- Work with presetsLite normally (local JSON files)
+- Click **"Send to Remote"** → Upload selected preset
+- Click **"Load from Remote"** → Download and save locally
+
 ---
 
-## Examples
+## 📂 Examples
 
-### example/ - Hybrid Mode
+### [example2/](example2/) - Pure Remote 🆕 **RECOMMENDED**
+- Direct scene parameter save/load
+- Cloud-only workflow
+- No presetsLite dependency
+- See `example2/README.md`
+
+### [example/](example/) - Hybrid Mode
 - Local JSON files + Cloud sync
 - presetsLite integration
 - Traditional workflow
 
-### example2/ - Pure Remote 🆕
-- NO local JSON files
-- Direct scene parameter save/load
-- Cloud-first workflow
-- See `example2/README.md`
+---
+
+## 📚 Documentation
+
+- **[SUPABASE-SETUP.md](SUPABASE-SETUP.md)** - Database configuration guide
+- **[docs/CHANGELOG.md](docs/CHANGELOG.md)** - Recent changes and fixes
+- **[example2/README.md](example2/README.md)** - Pure remote mode guide
+- **[AI-AGENTS-GUIDE.md](AI-AGENTS-GUIDE.md)** - For AI assistants
 
 ---
 
-## Documentation
+## 🎛️ UI Panel
 
-- `SUPABASE-SQL-SETUP.md` - Database setup guide
-- `docs/CHANGELOG.md` - Recent changes
-- `docs/SESSION-SUMMARY.md` - Implementation details
-- `example2/README.md` - Pure remote example
-- `AI-AGENTS-GUIDE.md` - For AI assistants
+```
+┌─ Supabase ────────────────────┐
+│ Status: 🟢 CONNECTED          │
+│ Auth: EMAIL_PASSWORD          │
+│                               │
+│ [x] Auto Sync (OFF)           │
+│ [x] Remote Mode (ON)          │
+│ [x] Show Debug                │
+│ [x] Show Preset Manager       │
+│                               │
+│ [Save Scene Direct]           │ ← Direct from params
+│ [Load & Apply]                │ ← Apply without file
+│                               │
+│ Preset Manager:               │
+│ ◀ Previous | Next ▶           │
+│ scene_20251127_032145         │
+│ [Delete Selected]             │
+│ [Refresh List]                │
+└───────────────────────────────┘
+```
 
 ---
 
-## Dependencies
+## 🔧 Dependencies
 
-- ofxGui (core)
-- ofxSurfingHelpersLite
-- ofxSurfingPresetsLite (for hybrid mode)
+**Required:**
+- `ofxGui` (OF core addon)
+- `ofxSurfingHelpersLite`
+
+**Optional (for hybrid mode):**
+- `ofxSurfingPresetsLite`
 
 ---
 
-## License
+## 🐛 Troubleshooting
+
+**Status shows RED:**
+- Check `credentials.txt` exists in `bin/data/`
+- Verify SUPABASE_URL and SUPABASE_ANON_KEY
+- Check network connection
+
+**"Authentication failed":**
+- Email/password incorrect
+- User not created in Supabase Dashboard
+- Email confirmations not disabled
+
+**"DELETE failed: 400":**
+- RLS policies not configured (see SUPABASE-SETUP.md)
+
+---
+
+## 📄 License
 
 MIT
 
 ---
 
-## Author
+## 👤 Author
 
-ofxSurfing - moebiusSurfing  
+**ofxSurfing** - moebiusSurfing  
 https://github.com/moebiusSurfing
+
+---
+
+**Version:** 1.0.0  
+**Last Updated:** 2025-11-27

@@ -13,6 +13,7 @@ example2/
 │   ├── ofApp.cpp
 │   ├── ofApp.h
 │   └── surfingSceneTesters.h
+├── FILE-STRUCTURE.md
 ├── Makefile
 ├── Project.xcconfig
 ├── README.md
