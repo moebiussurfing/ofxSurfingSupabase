@@ -2,6 +2,7 @@
 
 #pragma once
 #include "ofMain.h"
+#include "ofxGui.h"
 #include "SupabaseClient.h"
 
 struct PresetInfo {
@@ -15,18 +16,23 @@ struct PresetInfo {
 class SupabasePresetManager {
 public:
 	void setup(SupabaseClient* client, const string& userId);
-	void drawGui(int x = 10, int y = 10);
+	void drawGui();
 	
 	// Preset operations
 	void refreshPresetList();
 	void loadPreset(const string& name);
 	void savePreset(const string& name, const ofJson& data);
 	void deletePreset(const string& name);
-	void renamePreset(const string& oldName, const string& newName);
+	void clearDatabase();
+	
+	// Navigation
+	void selectNext();
+	void selectPrev();
+	int getSelectedIndex() const { return selectedIndex; }
+	string getSelectedPresetName() const;
 	
 	// Getters
 	vector<PresetInfo>& getPresets() { return presets; }
-	int getSelectedIndex() const { return selectedIndex; }
 	bool isLoading() const { return bIsLoading; }
 	
 	// Events
@@ -34,6 +40,16 @@ public:
 	ofEvent<string> onPresetSaved;
 	ofEvent<string> onPresetDeleted;
 	ofEvent<string> onError;
+	
+	// GUI Parameters
+	ofParameterGroup params{"Remote Presets"};
+	ofParameter<void> btnRefresh{"Refresh List"};
+	ofParameter<void> btnLoadSelected{"Load Selected"};
+	ofParameter<void> btnDeleteSelected{"Delete Selected"};
+	ofParameter<void> btnClearDatabase{"Clear Database (Debug)"};
+	ofParameter<void> btnPrev{"◀ Prev"};
+	ofParameter<void> btnNext{"Next ▶"};
+	ofParameter<string> selectedPresetName{"Selected", "none"};
 	
 private:
 	SupabaseClient* client = nullptr;
@@ -43,16 +59,15 @@ private:
 	int selectedIndex = -1;
 	bool bIsLoading = false;
 	
-	// UI state
-	string newPresetName = "";
-	string renameBuffer = "";
-	int renameIndex = -1;
-	bool bShowSaveDialog = false;
-	bool bShowRenameDialog = false;
-	bool bShowDeleteConfirm = false;
-	int deleteConfirmIndex = -1;
+	ofxPanel gui;
 	
-	void drawPresetList(int x, int y, int width);
-	void drawControls(int x, int y, int width);
-	void drawDialogs();
+	// Callbacks
+	void onBtnRefresh();
+	void onBtnLoad();
+	void onBtnDelete();
+	void onBtnClear();
+	void onBtnPrev();
+	void onBtnNext();
+	
+	void updateSelectedName();
 };

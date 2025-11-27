@@ -24,6 +24,8 @@ public:
 	void syncNow();
 	void forcePull();
 	void pushCurrentPreset();
+	void sendCurrentToRemote(); // NEW: Manual send button
+	void loadFromRemote(); // NEW: Load selected remote preset
 	
 	// Status
 	bool isConnected() const { return client.isConfigured() && client.isAuthenticated(); }
@@ -43,14 +45,21 @@ private:
 	SupabasePresetSync sync;
 	SupabasePresetManager presetManager;
 	
-	ofParameter<bool> bAutoSync{"Auto Sync", true};
+	ofParameter<bool> bAutoSync{"Auto Sync", false}; // OFF by default
 	ofParameter<bool> bShowDebug{"Show Debug", true};
 	ofParameter<bool> bShowPresetManager{"Show Preset Manager", true};
-	ofParameterGroup params{"Supabase", bAutoSync, bShowDebug, bShowPresetManager};
+	ofParameter<void> btnSendToRemote{"Send to Remote"};
+	ofParameter<void> btnLoadFromRemote{"Load from Remote"};
+	ofParameterGroup params{"Supabase", bAutoSync, bShowDebug, bShowPresetManager, btnSendToRemote, btnLoadFromRemote};
 	
 	ofxPanel gui;
 	
 	void onSyncComplete();
 	void onSyncError(string& error);
 	void setupAfterAuth(string& userId);
+	void onBtnSendToRemote();
+	void onBtnLoadFromRemote();
+	void onRemotePresetLoaded(PresetInfo& info);
+	
+	SurfingPresetsLiteOfxGui* presetsManagerPtr = nullptr;
 };

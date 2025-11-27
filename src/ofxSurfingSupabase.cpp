@@ -33,6 +33,10 @@ void ofxSurfingSupabase::setup() {
 	gui.setup(params);
 	gui.setPosition(ofGetWidth() - 220, 10);
 	
+	// Add button listeners
+	btnSendToRemote.addListener(this, &ofxSurfingSupabase::onBtnSendToRemote);
+	btnLoadFromRemote.addListener(this, &ofxSurfingSupabase::onBtnLoadFromRemote);
+	
 	ofLogNotice("ofxSurfingSupabase") << "Setup complete";
 }
 
@@ -46,6 +50,9 @@ void ofxSurfingSupabase::setupAfterAuth(string& userId) {
 	
 	// Setup preset manager
 	presetManager.setup(&client, userId);
+	
+	// Listen to preset manager events
+	ofAddListener(presetManager.onPresetLoaded, this, &ofxSurfingSupabase::onRemotePresetLoaded);
 	
 	// Listen to sync events
 	ofAddListener(sync.onSyncComplete, this, &ofxSurfingSupabase::onSyncComplete);
@@ -110,7 +117,7 @@ void ofxSurfingSupabase::draw() {
 	
 	// Draw preset manager
 	if (bShowPresetManager && isConnected()) {
-		presetManager.drawGui(10, 10);
+		presetManager.drawGui();
 	}
 }
 
@@ -126,8 +133,14 @@ void ofxSurfingSupabase::syncWithPresetsManager(SurfingPresetsLiteOfxGui& pm) {
 		return;
 	}
 	
-	sync.syncWithPresetsManager(pm);
-	ofLogNotice("ofxSurfingSupabase") << "Synced with presetsManager";
+	presetsManagerPtr = &pm; // Store pointer for later use
+	
+	if (bAutoSync) {
+		sync.syncWithPresetsManager(pm);
+		ofLogNotice("ofxSurfingSupabase") << "Auto-sync enabled with presetsManager";
+	} else {
+		ofLogNotice("ofxSurfingSupabase") << "Manual mode - use 'Send to Remote' button";
+	}
 }
 
 //--------------------------------------------------------------
@@ -153,4 +166,80 @@ void ofxSurfingSupabase::onSyncComplete() {
 //--------------------------------------------------------------
 void ofxSurfingSupabase::onSyncError(string& error) {
 	ofLogError("ofxSurfingSupabase") << "Sync error: " << error;
+}
+
+//--------------------------------------------------------------
+void ofxSurfingSupabase::sendCurrentToRemote() {
+	if (!presetsManagerPtr) {
+		ofLogError("ofxSurfingSupabase") << "PresetsManager not connected";
+		return;
+	}
+	
+	// Get current preset index
+	int idx = presetsManagerPtr->index.get();
+	
+	// Build preset file path (standard presetsLite format)
+	string filename = ofToString(idx, 2, '0') + ".json";
+	string path = "Kit-00/" + filename; // Default kit folder
+	
+	ofFile presetFile(path);
+	if (!presetFile.exists()) {
+		ofLogError("ofxSurfingSupabase") << "Preset file not found: " << path;
+		ofLogError("ofxSurfingSupabase") << "Save preset locally first!";
+		return;
+	}
+	
+	// Load JSON from file
+	ofJson settings = ofLoadJson(path);
+	
+	// Generate remote preset name
+	string name = "preset_" + ofToString(idx, 3, '0');
+	
+	ofLogNotice("ofxSurfingSupabase") << "Sending to remote: " << name << " from " << path;
+	
+	// Save to Supabase
+	presetManager.savePreset(name, settings);
+}
+
+//--------------------------------------------------------------
+void ofxSurfingSupabase::loadFromRemote() {
+	string name = presetManager.getSelectedPresetName();
+	if (name == "none") {
+		ofLogWarning("ofxSurfingSupabase") << "No remote preset selected";
+		return;
+	}
+	
+	ofLogNotice("ofxSurfingSupabase") << "Loading from remote: " << name;
+	presetManager.loadPreset(name);
+}
+
+//--------------------------------------------------------------
+void ofxSurfingSupabase::onBtnSendToRemote() {
+	sendCurrentToRemote();
+}
+
+//--------------------------------------------------------------
+void ofxSurfingSupabase::onBtnLoadFromRemote() {
+	loadFromRemote();
+}
+
+//--------------------------------------------------------------
+void ofxSurfingSupabase::onRemotePresetLoaded(PresetInfo& info) {
+	if (!presetsManagerPtr) return;
+	
+	ofLogNotice("ofxSurfingSupabase") << "Remote preset loaded: " << info.name;
+	ofLogNotice("ofxSurfingSupabase") << "Save to local file and use presetsManager to load it";
+	
+	// Save to a temp file in the kit folder
+	string tempFilename = "remote_" + info.name + ".json";
+	string path = "Kit-00/" + tempFilename;
+	
+	bool saved = ofSavePrettyJson(path, info.data);
+	
+	if (saved) {
+		ofLogNotice("ofxSurfingSupabase") << "Saved remote preset to: " << path;
+		ofLogNotice("ofxSurfingSupabase") << "Load it manually from presetsManager UI";
+	} else {
+		ofLogError("ofxSurfingSupabase") << "Failed to save remote preset";
+	}
 }

@@ -583,3 +583,4 @@ MigrationBackup/
 example/.vscode/browse.db
 example/.vscode/browse.db-shm
 example/.vscode/browse.db-wal
+example/bin/data/credentials.txt
