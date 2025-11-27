@@ -28,6 +28,7 @@ public:
 	void sendCurrentToRemote(); // From presetsLite file
 	void sendSceneDirect(); // NEW: Direct from scene params
 	void loadFromRemote(); // NEW: Load selected remote preset
+	void loadAndApplyRemote(); // NEW: Load + deserialize to scene
 	
 	// Status
 	bool isConnected() const { return client.isConfigured() && client.isAuthenticated(); }
@@ -38,6 +39,9 @@ public:
 	
 	// Direct access to preset manager
 	SupabasePresetManager& getPresetManager() { return presetManager; }
+	
+	// Public parameters (accessible from app)
+	ofParameter<bool> bRemoteMode{"Remote Mode", false};
 	
 	// Config
 	SupabaseConfig config;
@@ -50,10 +54,12 @@ private:
 	ofParameter<bool> bAutoSync{"Auto Sync", false}; // OFF by default
 	ofParameter<bool> bShowDebug{"Show Debug", true};
 	ofParameter<bool> bShowPresetManager{"Show Preset Manager", true};
+	
 	ofParameter<void> btnSendToRemote{"Send to Remote"};
 	ofParameter<void> btnSaveSceneDirect{"Save Scene Direct"}; // NEW
 	ofParameter<void> btnLoadFromRemote{"Load from Remote"};
-	ofParameterGroup params{"Supabase", bAutoSync, bShowDebug, bShowPresetManager, btnSendToRemote, btnSaveSceneDirect, btnLoadFromRemote};
+	ofParameter<void> btnLoadAndApply{"Load & Apply"}; // NEW
+	ofParameterGroup params{"Supabase", bAutoSync, bRemoteMode, bShowDebug, bShowPresetManager, btnSendToRemote, btnSaveSceneDirect, btnLoadFromRemote, btnLoadAndApply};
 	
 	ofxPanel gui;
 	// std::string sHelp = "";
@@ -64,6 +70,7 @@ private:
 	void onBtnSendToRemote();
 	void onBtnSaveSceneDirect(); // NEW
 	void onBtnLoadFromRemote();
+	void onBtnLoadAndApply(); // NEW
 	void onRemotePresetLoaded(PresetInfo& info);
 	
 	SurfingPresetsLiteOfxGui* presetsManagerPtr = nullptr;

@@ -132,6 +132,7 @@ void SupabasePresetManager::refreshPresetList() {
 }
 
 //--------------------------------------------------------------
+}
 
 //--------------------------------------------------------------
 void SupabasePresetManager::savePreset(const string& name, const ofJson& data) {

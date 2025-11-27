@@ -37,6 +37,7 @@ void ofxSurfingSupabase::setup() {
 	btnSendToRemote.addListener(this, &ofxSurfingSupabase::onBtnSendToRemote);
 	btnSaveSceneDirect.addListener(this, &ofxSurfingSupabase::onBtnSaveSceneDirect);
 	btnLoadFromRemote.addListener(this, &ofxSurfingSupabase::onBtnLoadFromRemote);
+	btnLoadAndApply.addListener(this, &ofxSurfingSupabase::onBtnLoadAndApply);
 	
 	ofLogNotice("ofxSurfingSupabase") << "Setup complete";
 }
@@ -217,7 +218,20 @@ void ofxSurfingSupabase::loadFromRemote() {
 	}
 	
 	ofLogNotice("ofxSurfingSupabase") << "Loading from remote: " << name;
-	presetManager.loadPreset(name);
+	
+	if (bRemoteMode) {
+		// Remote mode: apply directly
+		loadAndApplyRemote();
+	} else {
+		// Normal mode: trigger event to save to file
+		auto& presets = presetManager.getPresets();
+		for (auto& preset : presets) {
+			if (preset.name == name) {
+				onRemotePresetLoaded(preset);
+				return;
+			}
+		}
+	}
 }
 
 //--------------------------------------------------------------
@@ -234,6 +248,44 @@ void ofxSurfingSupabase::onBtnSaveSceneDirect() {
 void ofxSurfingSupabase::onBtnLoadFromRemote() {
 	loadFromRemote();
 }
+//--------------------------------------------------------------
+void ofxSurfingSupabase::loadAndApplyRemote() {
+if (!sceneParamsPtr) {
+ofLogError("ofxSurfingSupabase") << "Scene params not set!";
+return;
+}
+
+string name = presetManager.getSelectedPresetName();
+if (name == "none") {
+ofLogWarning("ofxSurfingSupabase") << "No preset selected";
+return;
+}
+
+// Find in cached list
+auto& presets = presetManager.getPresets();
+for (auto& preset : presets) {
+if (preset.name == name) {
+ofLogNotice("ofxSurfingSupabase") << "Applying: " << name;
+
+try {
+ofDeserialize(preset.data, *sceneParamsPtr);
+ofLogNotice("ofxSurfingSupabase") << "✅ Applied!";
+} catch (std::exception& e) {
+ofLogError("ofxSurfingSupabase") << "Failed: " << e.what();
+}
+return;
+}
+}
+
+ofLogError("ofxSurfingSupabase") << "Not found: " << name;
+}
+
+//--------------------------------------------------------------
+void ofxSurfingSupabase::onBtnLoadAndApply() {
+loadAndApplyRemote();
+}
+
+
 
 //--------------------------------------------------------------
 void ofxSurfingSupabase::sendSceneDirect() {

@@ -20,8 +20,8 @@ public:
 	
 	// Preset operations
 	void refreshPresetList();
-	void loadPreset(const string& name);
 	void savePreset(const string& name, const ofJson& data);
+	void upsertPreset(const string& name, const ofJson& data); // NEW: INSERT or UPDATE
 	void deletePreset(const string& name);
 	void clearDatabase();
 	
