@@ -35,6 +35,7 @@ void ofxSurfingSupabase::setup() {
 	
 	// Add button listeners
 	btnSendToRemote.addListener(this, &ofxSurfingSupabase::onBtnSendToRemote);
+	btnSaveSceneDirect.addListener(this, &ofxSurfingSupabase::onBtnSaveSceneDirect);
 	btnLoadFromRemote.addListener(this, &ofxSurfingSupabase::onBtnLoadFromRemote);
 	
 	ofLogNotice("ofxSurfingSupabase") << "Setup complete";
@@ -124,6 +125,12 @@ void ofxSurfingSupabase::draw() {
 //--------------------------------------------------------------
 void ofxSurfingSupabase::exit() {
 	ofLogNotice("ofxSurfingSupabase") << "Exit";
+}
+
+//--------------------------------------------------------------
+void ofxSurfingSupabase::setupSceneParams(ofParameterGroup& sceneParams) {
+	sceneParamsPtr = &sceneParams;
+	ofLogNotice("ofxSurfingSupabase") << "Scene params linked: " << sceneParams.getName();
 }
 
 //--------------------------------------------------------------
@@ -219,8 +226,34 @@ void ofxSurfingSupabase::onBtnSendToRemote() {
 }
 
 //--------------------------------------------------------------
+void ofxSurfingSupabase::onBtnSaveSceneDirect() {
+	sendSceneDirect();
+}
+
+//--------------------------------------------------------------
 void ofxSurfingSupabase::onBtnLoadFromRemote() {
 	loadFromRemote();
+}
+
+//--------------------------------------------------------------
+void ofxSurfingSupabase::sendSceneDirect() {
+	if (!sceneParamsPtr) {
+		ofLogError("ofxSurfingSupabase") << "Scene params not set! Call setupSceneParams() first";
+		return;
+	}
+	
+	// Serialize scene params directly to JSON
+	ofJson settings;
+	ofSerialize(settings, *sceneParamsPtr);
+	
+	// Generate unique name with timestamp
+	string timestamp = ofGetTimestampString("%Y%m%d_%H%M%S");
+	string name = "scene_" + timestamp;
+	
+	ofLogNotice("ofxSurfingSupabase") << "Saving scene direct: " << name;
+	
+	// Save to Supabase
+	presetManager.savePreset(name, settings);
 }
 
 //--------------------------------------------------------------

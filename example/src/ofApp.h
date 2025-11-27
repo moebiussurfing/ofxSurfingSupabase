@@ -31,4 +31,6 @@ private:
 	ofParameter<bool> bGui;
 
 	ofxSurfingSupabase db;
+
+	std::string sHelp = "";
 };

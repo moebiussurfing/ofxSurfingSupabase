@@ -252,24 +252,61 @@ return;
 
 string url = config.getRestUrl() + "/" + table + "?" + filter;
 
-// Use POST with X-HTTP-Method-Override: DELETE
-ofHttpRequest request(url, url);
-request.method = ofHttpRequest::POST;
+// Workaround: Query first, then delete by ID
+ofHttpRequest selectReq(url, url);
+selectReq.method = ofHttpRequest::GET;
 
 for (auto& pair : getHeaders()) {
-request.headers[pair.first] = pair.second;
+selectReq.headers[pair.first] = pair.second;
 }
-request.headers["X-HTTP-Method-Override"] = "DELETE";
-
-ofLogVerbose("SupabaseClient") << "DELETE (via POST) " << url;
 
 ofURLFileLoader loader;
-ofHttpResponse response = loader.handleRequest(request);
+ofHttpResponse selectResp = loader.handleRequest(selectReq);
 
-if (response.status >= 200 && response.status < 300) {
+if (selectResp.status != 200) {
+ofLogError("SupabaseClient") << "DELETE: Failed to query: " << selectResp.status;
+onError("HTTP " + ofToString(selectResp.status));
+return;
+}
+
+try {
+ofJson records = ofJson::parse(selectResp.data.getText());
+
+if (!records.is_array() || records.empty()) {
+ofLogNotice("SupabaseClient") << "DELETE: No records found";
 onSuccess();
-} else {
-ofLogError("SupabaseClient") << "DELETE failed: " << response.status;
-onError("HTTP " + ofToString(response.status));
+return;
+}
+
+// Delete each by ID
+int deletedCount = 0;
+for (auto& record : records) {
+if (!record.contains("id")) continue;
+
+string id = record["id"].get<string>();
+string deleteUrl = config.getRestUrl() + "/" + table + "?id=eq." + id;
+
+ofHttpRequest delReq(deleteUrl, deleteUrl);
+delReq.method = ofHttpRequest::POST;
+delReq.headers["X-HTTP-Method-Override"] = "DELETE";
+delReq.headers["Prefer"] = "return=minimal";
+
+for (auto& pair : getHeaders()) {
+delReq.headers[pair.first] = pair.second;
+}
+
+ofHttpResponse delResp = loader.handleRequest(delReq);
+
+if (delResp.status >= 200 && delResp.status < 300) {
+deletedCount++;
+}
+}
+
+ofLogNotice("SupabaseClient") << "Deleted " << deletedCount << " records";
+onSuccess();
+
+} catch (std::exception& e) {
+ofLogError("SupabaseClient") << "DELETE error: " << e.what();
+onError("Error: " + string(e.what()));
 }
 }

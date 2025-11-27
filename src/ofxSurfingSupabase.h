@@ -13,6 +13,7 @@
 class ofxSurfingSupabase {
 public:
 	void setup();
+	void setupSceneParams(ofParameterGroup& sceneParams); // NEW
 	void update();
 	void draw();
 	void exit();
@@ -24,7 +25,8 @@ public:
 	void syncNow();
 	void forcePull();
 	void pushCurrentPreset();
-	void sendCurrentToRemote(); // NEW: Manual send button
+	void sendCurrentToRemote(); // From presetsLite file
+	void sendSceneDirect(); // NEW: Direct from scene params
 	void loadFromRemote(); // NEW: Load selected remote preset
 	
 	// Status
@@ -49,17 +51,21 @@ private:
 	ofParameter<bool> bShowDebug{"Show Debug", true};
 	ofParameter<bool> bShowPresetManager{"Show Preset Manager", true};
 	ofParameter<void> btnSendToRemote{"Send to Remote"};
+	ofParameter<void> btnSaveSceneDirect{"Save Scene Direct"}; // NEW
 	ofParameter<void> btnLoadFromRemote{"Load from Remote"};
-	ofParameterGroup params{"Supabase", bAutoSync, bShowDebug, bShowPresetManager, btnSendToRemote, btnLoadFromRemote};
+	ofParameterGroup params{"Supabase", bAutoSync, bShowDebug, bShowPresetManager, btnSendToRemote, btnSaveSceneDirect, btnLoadFromRemote};
 	
 	ofxPanel gui;
+	// std::string sHelp = "";
 	
 	void onSyncComplete();
 	void onSyncError(string& error);
 	void setupAfterAuth(string& userId);
 	void onBtnSendToRemote();
+	void onBtnSaveSceneDirect(); // NEW
 	void onBtnLoadFromRemote();
 	void onRemotePresetLoaded(PresetInfo& info);
 	
 	SurfingPresetsLiteOfxGui* presetsManagerPtr = nullptr;
+	ofParameterGroup* sceneParamsPtr = nullptr; // NEW: Direct scene access
 };

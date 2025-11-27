@@ -11,6 +11,7 @@ void ofApp::setup() {
 	
 	// Setup Supabase connection
 	db.setup();
+	db.setupSceneParams(scene.params); // NEW: Direct scene access
 	
 	// Connect presetsManager with Supabase for auto-sync
 	db.syncWithPresetsManager(presetsManager);
@@ -63,30 +64,23 @@ void ofApp::drawGui() {
 
 //--------------------------------------------------------------
 void ofApp::drawHelp() {
-	int x = 10;
-	int y = ofGetHeight() - 100;
-	
-	ofPushStyle();
-	ofSetColor(255, 200);
-	
-	ofDrawBitmapString("KEYS:", x, y);
-	y += 15;
-	ofDrawBitmapString("G - Toggle GUI", x, y);
-	y += 15;
-	ofDrawBitmapString("S - Manual Sync (pull from Supabase)", x, y);
-	y += 15;
-	ofDrawBitmapString("P - Push current preset to Supabase", x, y);
-	y += 15;
-	
-	ofSetColor(100, 255, 100);
+	sHelp="";
+	sHelp+="KEYS:";
+	sHelp+="\n";
+	sHelp+="G - Toggle GUI";
+	sHelp+="\n";
+	sHelp+="S - Manual Sync (pull from Supabase)";
+	sHelp+="\n";
+	sHelp+="P - Push current preset to Supabase";
+	sHelp+="\n";
 	if (db.isConnected()) {
-		ofDrawBitmapString("Status: CONNECTED to Supabase", x, y);
+		sHelp+="Status: CONNECTED to Supabase";
+		sHelp+="\n";
 	} else {
-		ofSetColor(255, 100, 100);
-		ofDrawBitmapString("Status: DISCONNECTED - Check credentials.txt", x, y);
+		sHelp+="Status: DISCONNECTED - Check credentials.txt";
+		sHelp+="\n";
 	}
-	
-	ofPopStyle();
+	ofxSurfing::ofDrawBitmapStringBox(sHelp, &gui);
 }
 
 
