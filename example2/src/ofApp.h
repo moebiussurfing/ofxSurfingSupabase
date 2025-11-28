@@ -7,6 +7,7 @@
 #include "ofxSurfingSupabase.h"
 #include "surfingSceneTesters.h"
 #include "ofxGui.h"
+#include "ofxSurfingHelpersLite.h"
 
 class ofApp : public ofBaseApp {
 public:

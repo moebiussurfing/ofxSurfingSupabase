@@ -80,6 +80,11 @@ void ofxSurfingSupabase::draw() {
 	
 	ofPushStyle();
 	
+	ofSetColor(0, 200);
+	ofFill();
+	ofDrawRectRounded(ofRectangle(x, y - 13, gui.getWidth(), 40), 5);
+
+	x+=5;
 	// Auth mode
 	ofSetColor(200, 200, 255);
 	ofDrawBitmapString("Auth: " + getAuthMode(), x, y);

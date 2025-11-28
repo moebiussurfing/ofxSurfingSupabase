@@ -62,7 +62,6 @@ private:
 	ofParameterGroup params{"Supabase", bAutoSync, bRemoteMode, bShowDebug, bShowPresetManager, btnSendToRemote, btnSaveSceneDirect, btnLoadFromRemote, btnLoadAndApply};
 	
 	ofxPanel gui;
-	// std::string sHelp = "";
 	
 	void onSyncComplete();
 	void onSyncError(string& error);

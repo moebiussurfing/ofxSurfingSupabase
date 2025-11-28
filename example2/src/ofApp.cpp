@@ -7,9 +7,6 @@ void ofApp::setup() {
 	ofSetFrameRate(60);
 	ofSetWindowTitle("Pure Remote Presets - No presetsLite");
 	
-	// Setup scene
-	// scene.setup();
-	
 	// Setup Supabase - PURE REMOTE MODE
 	db.setup();
 	db.setupSceneParams(scene.params); // Direct link
@@ -31,7 +28,6 @@ void ofApp::setupGui() {
 
 //--------------------------------------------------------------
 void ofApp::update() {
-	// scene.update();
 }
 
 //--------------------------------------------------------------
@@ -51,19 +47,14 @@ void ofApp::drawGui() {
 	db.draw();
 	
 	// Help text
-	int y = ofGetHeight() - 120;
-	ofSetColor(255, 200);
-	ofDrawBitmapString("PURE REMOTE MODE - No presetsLite", 20, y);
-	y += 20;
-	ofDrawBitmapString("1. Adjust sliders above", 20, y);
-	y += 15;
-	ofDrawBitmapString("2. Click 'Save Scene Direct' (right panel)", 20, y);
-	y += 15;
-	ofDrawBitmapString("3. Browse with < > arrows", 20, y);
-	y += 15;
-	ofDrawBitmapString("4. Click 'Load & Apply' to restore", 20, y);
-	y += 20;
-	ofDrawBitmapString("G: Toggle GUI", 20, y);
+	std::string s="";
+	s+="PURE REMOTE MODE - No presetsLite\n";
+	s+="1. Adjust sliders above\n";
+	s+="2. Click 'Save Scene Direct' (right panel)\n";
+	s+="3. Browse with < > arrows\n";
+	s+="4. Click 'Load & Apply' to restore\n";
+	s+="G: Toggle GUI\n";
+	ofxSurfing::ofDrawBitmapStringBox(s, &gui);
 }
 
 //--------------------------------------------------------------
