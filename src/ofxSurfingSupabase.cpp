@@ -1,131 +1,127 @@
 // file: src/ofxSurfingSupabase.cpp
+// PURE REMOTE MODE - No presetsLite dependencies
 
 #include "ofxSurfingSupabase.h"
 
 //--------------------------------------------------------------
 void ofxSurfingSupabase::setup() {
-	ofLogNotice("ofxSurfingSupabase") << "Setup";
+	ofLogNotice("ofxSurfingSupabase") << "Setup - PURE REMOTE MODE";
 	
 	// Load credentials
 	if (!config.loadFromFile("credentials.txt")) {
 		ofLogError("ofxSurfingSupabase") << "Failed to load credentials.txt";
 		ofLogError("ofxSurfingSupabase") << "Create bin/data/credentials.txt with:";
-		ofLogError("ofxSurfingSupabase") << "  Option 1 (API Key):";
-		ofLogError("ofxSurfingSupabase") << "    project_url=https://xxxxx.supabase.co";
-		ofLogError("ofxSurfingSupabase") << "    api_key=your_api_key";
-		ofLogError("ofxSurfingSupabase") << "    user_id=your_user_id";
-		ofLogError("ofxSurfingSupabase") << "  Option 2 (Email/Password):";
-		ofLogError("ofxSurfingSupabase") << "    project_url=https://xxxxx.supabase.co";
-		ofLogError("ofxSurfingSupabase") << "    api_key=your_anon_key";
-		ofLogError("ofxSurfingSupabase") << "    email=your@email.com";
-		ofLogError("ofxSurfingSupabase") << "    password=your_password";
+		ofLogError("ofxSurfingSupabase") << "  project_url=https://xxxxx.supabase.co";
+		ofLogError("ofxSurfingSupabase") << "  api_key=your_anon_key";
+		ofLogError("ofxSurfingSupabase") << "  email=your@email.com";
+		ofLogError("ofxSurfingSupabase") << "  password=your_password";
 		return;
 	}
 	
-	// Listen to auth events before setup
-	ofAddListener(client.onAuthSuccess, this, &ofxSurfingSupabase::setupAfterAuth);
-	ofAddListener(client.onAuthError, this, &ofxSurfingSupabase::onSyncError);
+	// Setup GUI FIRST (before client, so it's ready)
+	gui.setup(params);
 	
-	// Setup client (will authenticate if needed)
+	// Button listeners
+	btnSave.addListener(this, &ofxSurfingSupabase::onSaveScene);
+	btnLoad.addListener(this, &ofxSurfingSupabase::onLoadAndApply);
+	btnRefresh.addListener(this, &ofxSurfingSupabase::onRefreshList);
+	btnPrev.addListener(this, &ofxSurfingSupabase::onPrevPreset);
+	btnNext.addListener(this, &ofxSurfingSupabase::onNextPreset);
+	btnDelete.addListener(this, &ofxSurfingSupabase::onDeleteSelected);
+	btnClear.addListener(this, &ofxSurfingSupabase::onClearDatabase);
+	bAutoApply.addListener(this, &ofxSurfingSupabase::onAutoApplyChanged);
+	
+	// Listen to auth events
+	ofAddListener(client.onAuthSuccess, this, &ofxSurfingSupabase::setupAfterAuth);
+	
+	// Setup client (this will trigger authentication)
 	client.setup(config);
 	
-	// Setup GUI
-	gui.setup(params);
-	gui.setPosition(ofGetWidth() - 220, 10);
-	
-	// Add button listeners
-	btnSendToRemote.addListener(this, &ofxSurfingSupabase::onBtnSendToRemote);
-	btnSaveSceneDirect.addListener(this, &ofxSurfingSupabase::onBtnSaveSceneDirect);
-	btnLoadFromRemote.addListener(this, &ofxSurfingSupabase::onBtnLoadFromRemote);
-	btnLoadAndApply.addListener(this, &ofxSurfingSupabase::onBtnLoadAndApply);
-	
-	ofLogNotice("ofxSurfingSupabase") << "Setup complete";
+	ofLogNotice("ofxSurfingSupabase") << "Setup complete - GUI ready";
 }
 
 //--------------------------------------------------------------
 void ofxSurfingSupabase::setupAfterAuth(string& userId) {
-	// This is called after authentication is successful
-	ofLogNotice("ofxSurfingSupabase") << "Setting up sync for user: " << userId;
-	
-	// Setup sync
-	sync.setup(&client, userId);
+	ofLogNotice("ofxSurfingSupabase") << "Authenticated as: " << userId;
 	
 	// Setup preset manager
 	presetManager.setup(&client, userId);
 	
-	// Listen to preset manager events
-	ofAddListener(presetManager.onPresetLoaded, this, &ofxSurfingSupabase::onRemotePresetLoaded);
-	
-	// Listen to sync events
-	ofAddListener(sync.onSyncComplete, this, &ofxSurfingSupabase::onSyncComplete);
-	ofAddListener(sync.onSyncError, this, &ofxSurfingSupabase::onSyncError);
-	
-	ofLogNotice("ofxSurfingSupabase") << "Sync and PresetManager initialized";
+	// Initial refresh
+	refreshList();
 }
 
 //--------------------------------------------------------------
 void ofxSurfingSupabase::update() {
-	// Nothing to update in main thread (async operations)
+	// Nothing needed
 }
 
 //--------------------------------------------------------------
 void ofxSurfingSupabase::draw() {
-	if (!bShowDebug) return;
+	// if (!bShowGui) return;
 	
+	gui.setPosition(ofGetWidth() - gui.getWidth() - 10, 10);
 	gui.draw();
 	
-	// Draw status info with color coding
-	int x = gui.getPosition().x;
-	int y = gui.getPosition().y + gui.getHeight() + 10;
+	// Help text using ofxSurfingHelpersLite
+	std::string helpText = "";
+	helpText += "PURE REMOTE MODE\n";
+	helpText += "No presetsLite - Direct DB sync\n";
+	helpText += "\n";
+	helpText += "1. Adjust sliders (Scene panel)\n";
+	helpText += "2. Click 'Save Scene Direct'\n";
+	helpText += "3. Browse with < > arrows\n";
+	helpText += "4. Enable 'Auto Apply' to preview\n";
+	helpText += "5. Click 'Load & Apply' to restore\n";
+	helpText += "\n";
+	helpText += "Status: " + string(isConnected() ? "CONNECTED" : "ERROR") + "\n";
+	helpText += "Auth: " + getAuthMode() + "\n";
+	helpText += "Presets: " + ofToString(presetManager.getPresets().size()) + "\n";
+	helpText += "\n";
+	helpText += "[G] Toggle GUI";
+	ofxSurfing::ofDrawBitmapStringBox(helpText, &gui);
 	
-	ofPushStyle();
-	
-	ofSetColor(0, 200);
-	ofFill();
-	ofDrawRectRounded(ofRectangle(x, y - 13, gui.getWidth(), 40), 5);
+	// Preset browser
+	if (isConnected()) {
+		drawPresetBrowser();
+	}
+}
 
-	x+=5;
-	// Auth mode
-	ofSetColor(200, 200, 255);
-	ofDrawBitmapString("Auth: " + getAuthMode(), x, y);
-	y += 20;
+//--------------------------------------------------------------
+void ofxSurfingSupabase::drawPresetBrowser() {
+	auto& presets = presetManager.getPresets();
+	string selected = presetManager.getSelectedPresetName();
 	
-	// Connection status with color
-	if (isConnected()) {
-		ofSetColor(0, 255, 0);  // GREEN - Connected
-		ofDrawBitmapString("Status: CONNECTED", x, y);
-	} else if (client.isConfigured()) {
-		ofSetColor(255, 200, 0);  // YELLOW - Authenticating
-		ofDrawBitmapString("Status: AUTHENTICATING...", x, y);
+	// Build preset list string
+	string listText = "";
+	listText += "REMOTE PRESET BROWSER\n";
+	listText += "====================\n";
+	
+	if (presets.empty()) {
+		listText += "(no presets yet)\n";
 	} else {
-		ofSetColor(255, 0, 0);  // RED - Error
-		ofDrawBitmapString("Status: ERROR - Check credentials.txt", x, y);
-	}
-	y += 20;
-	
-	// Sync info
-	if (isConnected()) {
-		if (isSyncing()) {
-			ofSetColor(255, 200, 0);
-			ofDrawBitmapString("Syncing...", x, y);
-		} else if (!getLastSyncTime().empty()) {
-			ofSetColor(150, 255, 150);
-			ofDrawBitmapString("Last sync: " + getLastSyncTime(), x, y);
+		int maxShow = 10;
+		int count = 0;
+		for (auto& preset : presets) {
+			if (count >= maxShow) {
+				listText += "... (" + ofToString(presets.size() - maxShow) + " more)\n";
+				break;
+			}
+			
+			bool isSelected = (preset.name == selected);
+			
+			// Mark selected with *
+			if (isSelected) {
+				listText += "* " + preset.name + "\n";
+			} else {
+				listText += "  " + preset.name + "\n";
+			}
+			
+			count++;
 		}
-		y += 20;
-		
-		if (getPendingOperations() > 0) {
-			ofSetColor(255, 200, 0);
-			ofDrawBitmapString("Pending: " + ofToString(getPendingOperations()), x, y);
-		}
 	}
 	
-	ofPopStyle();
-	
-	// Draw preset manager
-	if (bShowPresetManager && isConnected()) {
-		presetManager.drawGui();
-	}
+	ofxSurfing::ofDrawBitmapStringBox(listText, &gui);
 }
 
 //--------------------------------------------------------------
@@ -136,200 +132,156 @@ void ofxSurfingSupabase::exit() {
 //--------------------------------------------------------------
 void ofxSurfingSupabase::setupSceneParams(ofParameterGroup& sceneParams) {
 	sceneParamsPtr = &sceneParams;
-	ofLogNotice("ofxSurfingSupabase") << "Scene params linked: " << sceneParams.getName();
+	ofLogNotice("ofxSurfingSupabase") << "Scene linked: " << sceneParams.getName();
 }
 
 //--------------------------------------------------------------
-void ofxSurfingSupabase::syncWithPresetsManager(SurfingPresetsLiteOfxGui& pm) {
-	if (!isConnected()) {
-		ofLogError("ofxSurfingSupabase") << "Cannot sync: not connected";
-		return;
-	}
-	
-	presetsManagerPtr = &pm; // Store pointer for later use
-	
-	if (bAutoSync) {
-		sync.syncWithPresetsManager(pm);
-		ofLogNotice("ofxSurfingSupabase") << "Auto-sync enabled with presetsManager";
-	} else {
-		ofLogNotice("ofxSurfingSupabase") << "Manual mode - use 'Send to Remote' button";
-	}
-}
-
-//--------------------------------------------------------------
-void ofxSurfingSupabase::syncNow() {
-	sync.pullAllPresets();
-}
-
-//--------------------------------------------------------------
-void ofxSurfingSupabase::forcePull() {
-	sync.pullAllPresets();
-}
-
-//--------------------------------------------------------------
-void ofxSurfingSupabase::pushCurrentPreset() {
-	sync.pushCurrentPreset();
-}
-
-//--------------------------------------------------------------
-void ofxSurfingSupabase::onSyncComplete() {
-	ofLogNotice("ofxSurfingSupabase") << "Sync completed successfully";
-}
-
-//--------------------------------------------------------------
-void ofxSurfingSupabase::onSyncError(string& error) {
-	ofLogError("ofxSurfingSupabase") << "Sync error: " << error;
-}
-
-//--------------------------------------------------------------
-void ofxSurfingSupabase::sendCurrentToRemote() {
-	if (!presetsManagerPtr) {
-		ofLogError("ofxSurfingSupabase") << "PresetsManager not connected";
-		return;
-	}
-	
-	// Get current preset index
-	int idx = presetsManagerPtr->index.get();
-	
-	// Build preset file path (standard presetsLite format)
-	string filename = ofToString(idx, 2, '0') + ".json";
-	string path = "Kit-00/" + filename; // Default kit folder
-	
-	ofFile presetFile(path);
-	if (!presetFile.exists()) {
-		ofLogError("ofxSurfingSupabase") << "Preset file not found: " << path;
-		ofLogError("ofxSurfingSupabase") << "Save preset locally first!";
-		return;
-	}
-	
-	// Load JSON from file
-	ofJson settings = ofLoadJson(path);
-	
-	// Generate remote preset name
-	string name = "preset_" + ofToString(idx, 3, '0');
-	
-	ofLogNotice("ofxSurfingSupabase") << "Sending to remote: " << name << " from " << path;
-	
-	// Save to Supabase
-	presetManager.savePreset(name, settings);
-}
-
-//--------------------------------------------------------------
-void ofxSurfingSupabase::loadFromRemote() {
-	string name = presetManager.getSelectedPresetName();
-	if (name == "none") {
-		ofLogWarning("ofxSurfingSupabase") << "No remote preset selected";
-		return;
-	}
-	
-	ofLogNotice("ofxSurfingSupabase") << "Loading from remote: " << name;
-	
-	if (bRemoteMode) {
-		// Remote mode: apply directly
-		loadAndApplyRemote();
-	} else {
-		// Normal mode: trigger event to save to file
-		auto& presets = presetManager.getPresets();
-		for (auto& preset : presets) {
-			if (preset.name == name) {
-				onRemotePresetLoaded(preset);
-				return;
-			}
-		}
-	}
-}
-
-//--------------------------------------------------------------
-void ofxSurfingSupabase::onBtnSendToRemote() {
-	sendCurrentToRemote();
-}
-
-//--------------------------------------------------------------
-void ofxSurfingSupabase::onBtnSaveSceneDirect() {
-	sendSceneDirect();
-}
-
-//--------------------------------------------------------------
-void ofxSurfingSupabase::onBtnLoadFromRemote() {
-	loadFromRemote();
-}
-//--------------------------------------------------------------
-void ofxSurfingSupabase::loadAndApplyRemote() {
-if (!sceneParamsPtr) {
-ofLogError("ofxSurfingSupabase") << "Scene params not set!";
-return;
-}
-
-string name = presetManager.getSelectedPresetName();
-if (name == "none") {
-ofLogWarning("ofxSurfingSupabase") << "No preset selected";
-return;
-}
-
-// Find in cached list
-auto& presets = presetManager.getPresets();
-for (auto& preset : presets) {
-if (preset.name == name) {
-ofLogNotice("ofxSurfingSupabase") << "Applying: " << name;
-
-try {
-ofDeserialize(preset.data, *sceneParamsPtr);
-ofLogNotice("ofxSurfingSupabase") << "✅ Applied!";
-} catch (std::exception& e) {
-ofLogError("ofxSurfingSupabase") << "Failed: " << e.what();
-}
-return;
-}
-}
-
-ofLogError("ofxSurfingSupabase") << "Not found: " << name;
-}
-
-//--------------------------------------------------------------
-void ofxSurfingSupabase::onBtnLoadAndApply() {
-loadAndApplyRemote();
-}
-
-
-
-//--------------------------------------------------------------
-void ofxSurfingSupabase::sendSceneDirect() {
+void ofxSurfingSupabase::saveSceneDirect() {
 	if (!sceneParamsPtr) {
-		ofLogError("ofxSurfingSupabase") << "Scene params not set! Call setupSceneParams() first";
+		ofLogError("ofxSurfingSupabase") << "Scene not linked!";
 		return;
 	}
 	
-	// Serialize scene params directly to JSON
-	ofJson settings;
-	ofSerialize(settings, *sceneParamsPtr);
+	// Serialize scene → JSON
+	ofJson json;
+	ofSerialize(json, *sceneParamsPtr);
 	
-	// Generate unique name with timestamp
+	// Generate name with timestamp
 	string timestamp = ofGetTimestampString("%Y%m%d_%H%M%S");
 	string name = "scene_" + timestamp;
 	
-	ofLogNotice("ofxSurfingSupabase") << "Saving scene direct: " << name;
+	ofLogNotice("ofxSurfingSupabase") << "Saving: " << name;
 	
-	// Save to Supabase
-	presetManager.savePreset(name, settings);
+	// Save to DB
+	presetManager.savePreset(name, json);
+	
+	// Refresh list after a delay
+	ofSleepMillis(500);
+	refreshList();
 }
 
 //--------------------------------------------------------------
-void ofxSurfingSupabase::onRemotePresetLoaded(PresetInfo& info) {
-	if (!presetsManagerPtr) return;
+void ofxSurfingSupabase::loadAndApply() {
+	if (!sceneParamsPtr) {
+		ofLogError("ofxSurfingSupabase") << "Scene not linked!";
+		return;
+	}
 	
-	ofLogNotice("ofxSurfingSupabase") << "Remote preset loaded: " << info.name;
-	ofLogNotice("ofxSurfingSupabase") << "Save to local file and use presetsManager to load it";
+	string selected = presetManager.getSelectedPresetName();
+	if (selected == "none") {
+		ofLogWarning("ofxSurfingSupabase") << "No preset selected";
+		return;
+	}
 	
-	// Save to a temp file in the kit folder
-	string tempFilename = "remote_" + info.name + ".json";
-	string path = "Kit-00/" + tempFilename;
+	// Find preset in cached list
+	auto& presets = presetManager.getPresets();
+	for (auto& preset : presets) {
+		if (preset.name == selected) {
+			ofLogNotice("ofxSurfingSupabase") << "Loading: " << selected;
+			
+			try {
+				ofDeserialize(preset.data, *sceneParamsPtr);
+				ofLogNotice("ofxSurfingSupabase") << "✅ Applied!";
+			} catch (std::exception& e) {
+				ofLogError("ofxSurfingSupabase") << "Failed: " << e.what();
+			}
+			return;
+		}
+	}
 	
-	bool saved = ofSavePrettyJson(path, info.data);
+	ofLogError("ofxSurfingSupabase") << "Not found: " << selected;
+}
+
+//--------------------------------------------------------------
+void ofxSurfingSupabase::deleteSelected() {
+	string selected = presetManager.getSelectedPresetName();
+	if (selected == "none") {
+		ofLogWarning("ofxSurfingSupabase") << "No preset selected";
+		return;
+	}
 	
-	if (saved) {
-		ofLogNotice("ofxSurfingSupabase") << "Saved remote preset to: " << path;
-		ofLogNotice("ofxSurfingSupabase") << "Load it manually from presetsManager UI";
+	ofLogNotice("ofxSurfingSupabase") << "Deleting: " << selected;
+	presetManager.deletePreset(selected);
+	
+	// Refresh after delete
+	ofSleepMillis(500);
+	refreshList();
+}
+
+//--------------------------------------------------------------
+void ofxSurfingSupabase::clearDatabase() {
+	ofLogWarning("ofxSurfingSupabase") << "CLEARING ALL PRESETS!";
+	presetManager.clearDatabase();
+	
+	// Refresh after clear
+	ofSleepMillis(500);
+	refreshList();
+}
+
+//--------------------------------------------------------------
+void ofxSurfingSupabase::refreshList() {
+	ofLogNotice("ofxSurfingSupabase") << "Refreshing preset list...";
+	presetManager.refreshPresetList();
+}
+
+//--------------------------------------------------------------
+void ofxSurfingSupabase::selectNext() {
+	presetManager.selectNext();
+	
+	if (bAutoApply) {
+		loadAndApply();
+	}
+}
+
+//--------------------------------------------------------------
+void ofxSurfingSupabase::selectPrevious() {
+	presetManager.selectPrev();
+	
+	if (bAutoApply) {
+		loadAndApply();
+	}
+}
+
+//--------------------------------------------------------------
+void ofxSurfingSupabase::onSaveScene() {
+	saveSceneDirect();
+}
+
+//--------------------------------------------------------------
+void ofxSurfingSupabase::onLoadAndApply() {
+	loadAndApply();
+}
+
+//--------------------------------------------------------------
+void ofxSurfingSupabase::onRefreshList() {
+	refreshList();
+}
+
+//--------------------------------------------------------------
+void ofxSurfingSupabase::onPrevPreset() {
+	selectPrevious();
+}
+
+//--------------------------------------------------------------
+void ofxSurfingSupabase::onNextPreset() {
+	selectNext();
+}
+
+//--------------------------------------------------------------
+void ofxSurfingSupabase::onDeleteSelected() {
+	deleteSelected();
+}
+
+//--------------------------------------------------------------
+void ofxSurfingSupabase::onClearDatabase() {
+	clearDatabase();
+}
+
+//--------------------------------------------------------------
+void ofxSurfingSupabase::onAutoApplyChanged(bool& value) {
+	if (value) {
+		ofLogNotice("ofxSurfingSupabase") << "Auto Apply: ON - will apply on browse";
 	} else {
-		ofLogError("ofxSurfingSupabase") << "Failed to save remote preset";
+		ofLogNotice("ofxSurfingSupabase") << "Auto Apply: OFF - manual load only";
 	}
 }

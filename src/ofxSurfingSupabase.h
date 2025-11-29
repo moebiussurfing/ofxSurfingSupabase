@@ -1,77 +1,74 @@
 // file: src/ofxSurfingSupabase.h
+// PURE REMOTE MODE - No presetsLite dependencies
 
 #pragma once
 
 #include "ofMain.h"
 #include "ofxGui.h"
+#include "ofxSurfingHelpersLite.h"
 #include "SupabaseClient.h"
 #include "SupabaseConfig.h"
-#include "SupabasePresetSync.h"
 #include "SupabasePresetManager.h"
-#include "ofxSurfingPresetsLiteOfxGui.h"
 
 class ofxSurfingSupabase {
 public:
 	void setup();
-	void setupSceneParams(ofParameterGroup& sceneParams); // NEW
+	void setupSceneParams(ofParameterGroup& sceneParams);
 	void update();
 	void draw();
 	void exit();
 	
-	// Main integration method
-	void syncWithPresetsManager(SurfingPresetsLiteOfxGui& pm);
+	// Core operations
+	void saveSceneDirect();       // Serialize scene → Save to DB
+	void loadAndApply();          // Load selected → Apply to scene
+	void deleteSelected();        // Delete selected preset
+	void clearDatabase();         // Clear all presets (DEBUG)
+	void refreshList();           // Refresh preset list from DB
 	
-	// Manual controls
-	void syncNow();
-	void forcePull();
-	void pushCurrentPreset();
-	void sendCurrentToRemote(); // From presetsLite file
-	void sendSceneDirect(); // NEW: Direct from scene params
-	void loadFromRemote(); // NEW: Load selected remote preset
-	void loadAndApplyRemote(); // NEW: Load + deserialize to scene
+	// Navigation
+	void selectNext();
+	void selectPrevious();
 	
 	// Status
 	bool isConnected() const { return client.isConfigured() && client.isAuthenticated(); }
-	bool isSyncing() const { return sync.isSyncing(); }
-	string getLastSyncTime() const { return sync.getLastSyncTime(); }
-	int getPendingOperations() const { return sync.getPendingOperations(); }
 	string getAuthMode() const { return config.authMode == AuthMode::API_KEY ? "API Key" : "Email/Password"; }
 	
-	// Direct access to preset manager
-	SupabasePresetManager& getPresetManager() { return presetManager; }
+	// UI Control
+	void setShowGui(bool show) { bShowGui = show; }
 	
-	// Public parameters (accessible from app)
-	ofParameter<bool> bRemoteMode{"Remote Mode", false};
-	
-	// Config
 	SupabaseConfig config;
 	
 private:
 	SupabaseClient client;
-	SupabasePresetSync sync;
 	SupabasePresetManager presetManager;
+	ofParameterGroup* sceneParamsPtr = nullptr;
 	
-	ofParameter<bool> bAutoSync{"Auto Sync", false}; // OFF by default
-	ofParameter<bool> bShowDebug{"Show Debug", true};
-	ofParameter<bool> bShowPresetManager{"Show Preset Manager", true};
+	// UI Parameters
+	ofParameter<bool> bShowGui{"Supabase UI", true};
+	ofParameter<bool> bAutoApply{"Auto Apply", false};
 	
-	ofParameter<void> btnSendToRemote{"Send to Remote"};
-	ofParameter<void> btnSaveSceneDirect{"Save Scene Direct"}; // NEW
-	ofParameter<void> btnLoadFromRemote{"Load from Remote"};
-	ofParameter<void> btnLoadAndApply{"Load & Apply"}; // NEW
-	ofParameterGroup params{"Supabase", bAutoSync, bRemoteMode, bShowDebug, bShowPresetManager, btnSendToRemote, btnSaveSceneDirect, btnLoadFromRemote, btnLoadAndApply};
+	ofParameter<void> btnSave{"Save Scene Direct"};
+	ofParameter<void> btnLoad{"Load & Apply"};
+	ofParameter<void> btnRefresh{"Refresh List"};
+	ofParameter<void> btnPrev{"Prev"};
+	ofParameter<void> btnNext{"Next"};
+	ofParameter<void> btnDelete{"Delete Selected"};
+	ofParameter<void> btnClear{"Clear DB (Debug)"};
 	
+	ofParameterGroup params{"SUPABASE REMOTE", bShowGui, bAutoApply, btnSave, btnLoad, btnPrev, btnNext, btnRefresh, btnDelete, btnClear};
 	ofxPanel gui;
 	
-	void onSyncComplete();
-	void onSyncError(string& error);
+	// Event handlers
 	void setupAfterAuth(string& userId);
-	void onBtnSendToRemote();
-	void onBtnSaveSceneDirect(); // NEW
-	void onBtnLoadFromRemote();
-	void onBtnLoadAndApply(); // NEW
-	void onRemotePresetLoaded(PresetInfo& info);
+	void onSaveScene();
+	void onLoadAndApply();
+	void onRefreshList();
+	void onPrevPreset();
+	void onNextPreset();
+	void onDeleteSelected();
+	void onClearDatabase();
+	void onAutoApplyChanged(bool& value);
 	
-	SurfingPresetsLiteOfxGui* presetsManagerPtr = nullptr;
-	ofParameterGroup* sceneParamsPtr = nullptr; // NEW: Direct scene access
+	// UI
+	void drawPresetBrowser();
 };

@@ -16,7 +16,6 @@ example/
 ├── FILE-STRUCTURE.md
 ├── Makefile
 ├── Project.xcconfig
-├── README.md
 ├── addons.make
 ├── config.make
 ├── example.code-workspace
@@ -31,7 +30,6 @@ example/
 
 - `ofxGui`
 - `ofxSurfingHelpersLite`
-- `ofxSurfingPresetsLite`
 - `ofxSurfingSupabase`
 
 ### OpenFrameworks Paths

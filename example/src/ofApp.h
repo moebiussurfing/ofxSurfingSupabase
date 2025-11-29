@@ -1,14 +1,9 @@
-// file: src/ofApp.h
-
 #pragma once
 
 #include "ofMain.h"
-
-#include "ofxSurfingPresetsLiteOfxGui.h"
-#include "surfingSceneTesters.h"
-
 #include "ofxGui.h"
 #include "ofxSurfingSupabase.h"
+#include "surfingSceneTesters.h"
 
 class ofApp : public ofBaseApp {
 public:
@@ -16,21 +11,17 @@ public:
 	void update();
 	void draw();
 	void keyPressed(int key);
-	void windowResized(int w, int h);
 	void exit();
-
-	SurfingSceneTesters scene;
-	SurfingPresetsLiteOfxGui presetsManager;
-
-private:
-	void setupGui();
-	void drawGui();
-	void drawHelp();
 	
-	ofxPanel gui;
-	ofParameter<bool> bGui;
-
+private:
+	// Scene with parameters
+	SurfingSceneTesters scene;
+	
+	// Supabase integration
 	ofxSurfingSupabase db;
+	
+	// UI
+	ofParameter<bool> bGui{"GUI", true};
 
-	std::string sHelp = "";
+	ofxPanel gui;
 };

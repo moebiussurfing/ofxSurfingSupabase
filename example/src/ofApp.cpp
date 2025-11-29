@@ -1,30 +1,17 @@
-// file: src/ofApp.cpp
-
 #include "ofApp.h"
 
 //--------------------------------------------------------------
 void ofApp::setup() {
-	ofSetWindowTitle("ofxSurfingSupabase Example");
+	ofSetFrameRate(60);
+	ofSetWindowTitle("ofxSurfingSupabase - Pure Remote Mode");
 	
-	// Setup scene parameters
-	presetsManager.setup(scene.params);
-	
-	// Setup Supabase connection
-	db.setup();
-	db.setupSceneParams(scene.params); // NEW: Direct scene access
-	
-	// Connect presetsManager with Supabase for auto-sync
-	db.syncWithPresetsManager(presetsManager);
-	
-	setupGui();
-}
-
-//--------------------------------------------------------------
-void ofApp::setupGui() {
-	bGui.set("Show GUI", true);
-	gui.setup("Controls");
-	gui.add(bGui);
+	gui.add(scene.params);
 	gui.setPosition(10, 10);
+
+	// Setup Supabase
+	db.setup();
+	db.setupSceneParams(scene.params);
+	db.setShowGui(true);
 }
 
 //--------------------------------------------------------------
@@ -34,82 +21,49 @@ void ofApp::update() {
 
 //--------------------------------------------------------------
 void ofApp::draw() {
-	ofBackground(30);
+	ofBackground(40);
 	
 	// Draw scene
 	scene.draw();
-
-	// Draw presets manager GUI
-	presetsManager.drawGui();
 	
-	// Listen to preset changes
-	if (presetsManager.isChangedIndex()) {
-		ofLogNotice("ofApp") << "Preset changed to index: " << presetsManager.index.get();
+	// Draw Supabase UI
+	if (bGui) 
+	{
+		db.draw();
 	}
-
-	// Draw Supabase status and GUI
-	db.draw();
-
-	// Draw main controls GUI
-	if (bGui) drawGui();
 	
-	// Draw instructions
-	drawHelp();
-}
-
-//--------------------------------------------------------------
-void ofApp::drawGui() {
 	gui.draw();
-}
-
-//--------------------------------------------------------------
-void ofApp::drawHelp() {
-	sHelp="";
-	sHelp+="KEYS:";
-	sHelp+="\n";
-	sHelp+="G - Toggle GUI";
-	sHelp+="\n";
-	sHelp+="S - Manual Sync (pull from Supabase)";
-	sHelp+="\n";
-	sHelp+="P - Push current preset to Supabase";
-	sHelp+="\n";
-	if (db.isConnected()) {
-		sHelp+="Status: CONNECTED to Supabase";
-		sHelp+="\n";
-	} else {
-		sHelp+="Status: DISCONNECTED - Check credentials.txt";
-		sHelp+="\n";
+	
+	// Help text
+	if (bGui) {
+		std::string s = "";
+		s += "PURE REMOTE MODE - No presetsLite\n";
+		s += "\n";
+		s += "1. Adjust sliders above\n";
+		s += "2. Click 'Save Scene Direct' (right panel)\n";
+		s += "3. Browse with < > arrows\n";
+		s += "4. Click 'Load & Apply' to restore\n";
+		s += "\n";
+		s += "G: Toggle GUI\n";
+		
+		ofPushStyle();
+		ofSetColor(0, 200);
+		ofDrawRectRounded(10, ofGetHeight() - 160, 400, 150, 5);
+		ofSetColor(255);
+		ofDrawBitmapString(s, 20, ofGetHeight() - 140);
+		ofPopStyle();
 	}
-	ofxSurfing::ofDrawBitmapStringBox(sHelp, &gui);
 }
-
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key) {
 	if (key == 'g' || key == 'G') {
 		bGui = !bGui;
-	}
-	else if (key == 's' || key == 'S') {
-		// Manual sync
-		db.syncNow();
-		ofLogNotice("ofApp") << "Manual sync triggered";
-	}
-	else if (key == 'p' || key == 'P') {
-		// Push current preset manually
-		db.pushCurrentPreset();
-		ofLogNotice("ofApp") << "Manual push triggered";
-	}
-	else if (key == ' ') {
-		// Toggle Supabase debug
-		// db.bShowDebug is private, controlled via GUI
+		db.setShowGui(bGui);
 	}
 }
 
 //--------------------------------------------------------------
 void ofApp::exit() {
 	db.exit();
-}
-
-//--------------------------------------------------------------
-void ofApp::windowResized(int w, int h) {
 }

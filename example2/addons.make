@@ -1,4 +1,0 @@
-ofxGui
-ofxSurfingHelpersLite
-ofxSurfingPresetsLite
-ofxSurfingSupabase
