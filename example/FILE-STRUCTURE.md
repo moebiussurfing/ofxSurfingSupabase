@@ -29,7 +29,6 @@ example/
 ## Used Addons (from addons.make)
 
 - `ofxGui`
-- `ofxSurfingHelpersLite`
 - `ofxSurfingSupabase`
 
 ### OpenFrameworks Paths

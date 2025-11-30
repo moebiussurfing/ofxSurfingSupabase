@@ -20,11 +20,6 @@ ofxSurfingSupabase/
 │   ├── example.code-workspace
 │   └── generate-FILE-STRUCTURE.py
 ├── src/
-│   ├── SupabaseClient.cpp
-│   ├── SupabaseClient.h
-│   ├── SupabaseConfig.h
-│   ├── SupabasePresetManager.cpp
-│   ├── SupabasePresetManager.h
 │   ├── ofxSurfingSupabase.cpp
 │   └── ofxSurfingSupabase.h
 ├── FILE-STRUCTURE.md
