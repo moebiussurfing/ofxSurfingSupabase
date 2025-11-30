@@ -4,10 +4,10 @@
 ofxSurfingSupabase/
 ├── docs/
 │   ├── AGENTS.md
-│   ├── AI-AGENTS-GUIDE.md
 │   ├── CHANGELOG.md
 │   ├── DEVELOPMENT-NOTES.md
 │   ├── RULES.md
+│   ├── START-AI-AGENTS-GUIDE.md
 │   └── TODO.md
 ├── example/
 │   ├── src/
@@ -17,8 +17,7 @@ ofxSurfingSupabase/
 │   │   └── surfingSceneTesters.h
 │   ├── FILE-STRUCTURE.md
 │   ├── addons.make
-│   ├── example.code-workspace
-│   └── generate-FILE-STRUCTURE.py
+│   └── example.code-workspace
 ├── src/
 │   ├── ofxSurfingSupabase.cpp
 │   └── ofxSurfingSupabase.h
