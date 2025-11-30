@@ -1,33 +1,34 @@
 #### file: TODO.md
 
+# START
+
+- read `docs/START-AI-AGENTS-GUIDE.md` carefully first! at least once per agent session.
+
 # OVERVIEW
 
-# DO NO
+- un addon para OF llamado ofxSurfingSupabase y su ofApp / example.
+- SurfingSceneTesters is el grupo de params que usamos para aplicar y editar prestes en tiempo real.
+- SurfingSceneTesters scene; -> target/source: scene.params  
+- quiero usar Supabase como backend para guardar y recuperar datos en json.
+- concretamente quiero poder guardar y recuperar configuraciones de ofParameter dentro de ofParameterGroups de OF.
+- guardo configuraciones/presets de un ofParameterGroup en archivos json, que de-serializo para aplicar en un ofParameterGroup.
+- los genero serializando un ofParameterGroup a json y se guardara en la ddbb remota.
+- quiero usar Supabase como ddbb almacenamiento remoto de jsons.
+- quiero una interfaz de usuario simple para gestionar los presets (guardar nuevo, guardar en actual, cargar seleccionado, borrar, listar, browsear (next/previous), auto apply toggle: para browsear y aplicar el json al ofParmeterGroup, auto cargar seleccionado, recargar tras editar si quiero descartar cambios (undo), etc).
+- por ahora el sistema de login lo quiero manejar hardcoded con un archivo de texto secreto en local bin/data/credentials.txt que contenga el email y password del usuario de Supabase o un api token key. (la mejor manera, piensa que soy nuevo en en supabase.) debes revisar la documentacion de supabase para ver como autenticar usuarios y manejar sesiones y ayudarme a configurar supabase por el navegador chrome. quizas estas configuraciones se pueden hacer desde mi app OF usando la api de supabase?
+    - prevista compatibilidad y modularidad maxima para futuros updates:
+        mas adelante cuando integrase un ui como dear imgui, me gustaria implementar un sistema log con usurio de google, por ejemplo.
+- quiero que sea bien modular para poder usarlo en cualquier otros proyectos de OF facilmente y tambien para mejorar funcionalidades en el futuro. por ejemplo otros usos que no sea guardar arcivos json, sino ddbb de usuarios con sus propios datos. browsear filtrando por usuarios, fecha de subida, categorias u otros criterios.
+- quizas podrias estudiar de usar una lib cpp para realiazar las conexiones http a supabase, como cpp-httplib o similar si lo consideras mas isolado y portable que usar classes de OF core. prefiero no usar ofxAddons de http como ofxHTTP. que puedan estar desactualizados o no mantenidos.
+- mas adelante integraremos algun sistema multithread para no bloquear el hilo principal de OF al hacer las conexiones http a supabase. podemos ir enfocandolo para que sea facil de adaptar a multithread en el futuro.
+- en la ui deberia haber botones ofParameter void (ofGui) con sus callbackks lambda para borrar el kit, borrar la database remota.
+- implementa buenos logs de debug en consola para saber que esta pasando en cada momento.
+- implemente el /example funcional que sera el que probara el uso basico del addon ofxSurfingSupabase que estamos haciendo.
+
+# DO
+
+- investiga el objetivo del addon y example e implementalo de la mejor manera posible y simplificada minimal pero user friendly y funcional.
 
 # DONE
 
 # IGNORE (MY OWN NOTES)
-
-- OAuth Google → Pendiente para futuro con Dear ImGui
-- Conflict resolution → No prioritario ahora
-- Offline queue → Nice to have
-- Preset versioning → Futuro
-- cpp-httplib → Por ahora usando ofURLFileLoader (funciona bien)
-- Multithread → Enfocado para futuro (async callbacks ya implementados)
-
-- addon para oF llamado ofxSurfingSupabase y su ofApp /example. 
-- quiero usar Supabase como backend para guardar y recuperar datos en json.
-- concretamente quiero poder guardar y recuperar configuraciones de ofParameter dentro de ofParameterGroups de oF.
-- guardo configuraciones/presets de un ofParameterGroup en archivos json en OF, que de-serializo para aplicar en un ofParameterGroup.
-- los genero serializando un ofParameterGroup a json.
-- quiero hacer lo mismo pero usando Supabase como almacenamiento remoto. quizas manteniendo un mirror de todos los presets del usuario loggeado en supabase en local (archivos json) y remoto (Supabase). podria aver un toggle para activar cada modo: asi a veces usa local y a veces remoto. o los dos. boton void con trigger para sincronizar local -> remoto o remoto -> local.
-- quiero usar la base de datos de Supabase para guardar los jsons.
-- quiero una interfaz de usuario simple para gestionar los presets (guardar, cargar, borrar, listar)
-- por ahora el sistema de login lo quiero manejar hardcoded con un archivo de texto secreto en local bin/data/credentials.txt que contenga el email y password del usuario de Supabase o un api token key. (la mejor manera, piensa que soy nuevo en en supabase.) debes revisar la doc de supabase para ver como autenticar usuarios y manejar sesiones y ayudarme a configurar supabase por el navegador chrome. quizas estas configuraciones se pueden hacer desde mi app OF usando la api de supabase?
-    mas adelante cuando integrase un ui como dear imgui, me gustaria implementar un sistema log con usurio de google, por ejemplo.
-- quiero que sea bien modular para poder usarlo en otros proyectos de oF facilmente y tambien para mejorar funcionalidades en el futuro. por ejemplo otros usos que no sea guardar arcivos json, sino ddbb de usuarios con sus propios datos. browsear filtrando por usuarios, fechas u otros criterios.
-- quizas podrias estudiar de usar una lib cpp para realiazar las conexiones http a supabase, como cpp-httplib o similar si lo consideras mas isolado y portable que usar classes de OF core. cprefiero no usar ofxAddons de http que puedan estar desactualizados o no mantenidos.
-- mas adelante integraremos algun sistema multithread para no bloquear el hilo principal de oF al hacer las conexiones http a supabase. podemos ir enfocandolo para que sea facil de adaptar a multithread en el futuro.
-- en la ui deberia haber botones ofParameter void (ofGui) con sus callbackks lambda para borrar el kit, borrar la databadse remota, sincronizar local -> remoto, remoto -> local, etc.
-- implementa buenos logs de debug en consola para saber que esta pasando en cada momento.
-- implemente el /example funcional que sera el que probara el uso bassico del addon ofxSurfingSupabase que estamos haciendo.

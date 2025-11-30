@@ -22,7 +22,6 @@
 - [**FILE-STRUCTURE**](FILE-STRUCTURE.md) → Project file map.
 - [**docs/PROJECT-CONTEXT.md**](docs/PROJECT-CONTEXT.md) → Full project overview. Read on first session or when lost.
 - [**docs/CHANGELOG.md**](docs/CHANGELOG.md) → Project history, major milestones and current project status.
-- **[docs/Status/KNOWN-BUGS.md](docs/Status/KNOWN-BUGS.md)** → Bugs and known issues that we will need to resolve at some point.
 
 ### **READ DEPTHLY & MEMORIZE**:
 
@@ -33,7 +32,7 @@
 
 ###	⭐ After reading the `TODO.md` created by the `developer`, begin with the implementation!
 
-- **[docs/Status/TODO.md](docs/Status/TODO.md)**
+- **[docs/Status/TODO.md](docs/TODO.md)**
 	- The `AI Code Agent` --_you_-- will be communite with --_me_--, the `developer`.
 	- Initiate the session by reading and familiarizing yourself with the project context in depth.
 	- The tasks listed in `TODO.md` must now be completed.
