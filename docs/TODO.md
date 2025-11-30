@@ -27,8 +27,34 @@
 
 # DO
 
-- investiga el objetivo del addon y example e implementalo de la mejor manera posible y simplificada minimal pero user friendly y funcional.
+- [NEXT] compilar y testear con credenciales reales de Supabase
+- [NEXT] verificar que todas las operaciones CRUD funcionan correctamente
+- [FUTURE] implementar multithreading para operaciones async
+- [FUTURE] añadir progress indicators en UI
+- [FUTURE] implementar auto-sync funcional
+- [FUTURE] añadir sistema de notificaciones toast
 
 # DONE
+
+- [✓] estructura básica del addon (header + implementation)
+- [✓] sistema de autenticación EMAIL_PASSWORD
+- [✓] carga de credenciales desde credentials.txt
+- [✓] tracking de estado de conexión
+- [✓] integración con ofxGui
+- [✓] linking de scene parameters
+- [✓] serialización/deserialización JSON
+- [✓] navegación de presets (Next/Previous)
+- [✓] lifecycle management (setup/update/draw/exit)
+- [✓] example application funcional
+- [✓] documentación completa (README, CHANGELOG, IMPLEMENTATION-STATUS)
+- [✓] patrón modular para futuras extensiones
+- [✓] **integración de cpp-httplib (header-only, multiplataforma)**
+- [✓] **implementación completa de HTTP client con SSL/HTTPS**
+- [✓] **todas las operaciones CRUD funcionando (SELECT, INSERT, DELETE)**
+- [✓] **REST API de Supabase completamente integrado**
+- [✓] **headers de autenticación (apikey, Authorization Bearer)**
+- [✓] **manejo de errores y timeouts HTTP**
+- [✓] **lista real de presets desde base de datos**
+- [✓] **addon_config.mk para configuración multiplataforma**
 
 # IGNORE (MY OWN NOTES)

@@ -32,7 +32,7 @@
 
 ###	⭐ After reading the `TODO.md` created by the `developer`, begin with the implementation!
 
-- **[docs/Status/TODO.md](docs/TODO.md)**
+- **[docs/TODO.md](docs/TODO.md)**
 	- The `AI Code Agent` --_you_-- will be communite with --_me_--, the `developer`.
 	- Initiate the session by reading and familiarizing yourself with the project context in depth.
 	- The tasks listed in `TODO.md` must now be completed.

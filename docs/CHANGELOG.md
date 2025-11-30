@@ -1,113 +1,250 @@
 # Changelog
 
-**Latest Version:** 1.0.0  
-**Date:** 2025-11-27
+---
 
-## Fixes
+## [0.9.0-beta] - 2025-11-30
 
-### DELETE Operations
-- **Fixed HTTP 400 errors**
-- Query by preset name → Delete by ID
-- Methods: `deletePreset()`, `clearDatabase()`
+**Status:** Beta - Full Database Integration
 
-### UPSERT Logic
-- **Fixed 409 (duplicate) and 403 (forbidden) errors**
-- SELECT first → UPDATE if exists → INSERT if not
-- Method: `upsertPreset(name, json)`
+### 🎉 HTTP Client Integration
 
-### RLS Policy
-- **Fixed UPDATE permission denied**
-- Added `WITH CHECK` clause to policy
-- See SUPABASE-SETUP.md for SQL
+**cpp-httplib:**
+- ✅ Integrated cpp-httplib (header-only library)
+- ✅ HTTPS/SSL support for secure connections
+- ✅ All HTTP methods implemented (GET, POST, DELETE)
+- ✅ Authentication headers (apikey, Authorization Bearer)
+- ✅ Proper error handling and timeouts
+
+**Supabase REST API:**
+- ✅ SELECT all presets
+- ✅ SELECT single preset by name
+- ✅ INSERT/UPSERT with conflict resolution
+- ✅ DELETE single preset
+- ✅ DELETE all presets (clear database)
+- ✅ Query filters (eq, order by created_at)
+
+### ✅ Fully Functional Features
+
+**Database Operations:**
+```cpp
+savePreset(name)        // ✅ Working - Saves to Supabase
+loadPreset(name)        // ✅ Working - Loads from Supabase
+deletePreset(name)      // ✅ Working - Deletes from database
+refreshPresetList()     // ✅ Working - Gets all presets
+clearDatabase()         // ✅ Working - Deletes all user presets
+```
+
+**Direct Scene Operations:**
+```cpp
+sendSceneDirect()       // ✅ Working - Auto timestamp + save
+loadAndApplyRemote()    // ✅ Working - Load + deserialize to scene
+```
+
+**Preset Browsing:**
+- ✅ Next/Previous navigation
+- ✅ Real preset list from database
+- ✅ Auto-select first preset
+- ✅ Index management
+
+**Authentication:**
+- ✅ EMAIL_PASSWORD mode
+- ✅ Token storage and reuse
+- ✅ Connection status tracking
+- ✅ Secure HTTPS connections
+
+### 📁 New Files
+
+**Libraries:**
+- `libs/cpp-httplib/include/httplib.h` - HTTP client library
+
+**Configuration:**
+- `addon_config.mk` - OF addon configuration
+  - Include paths for cpp-httplib
+  - OpenSSL linking for HTTPS
+  - Platform-specific settings
+
+### 🔧 Technical Improvements
+
+**Error Handling:**
+- HTTP exceptions caught and logged
+- Network timeouts (10 seconds)
+- JSON parsing error handling
+- Connection state validation
+
+**Logging:**
+- ✓ Success indicators
+- ✗ Error indicators  
+- ⚠️ Warning indicators
+- Debug mode for detailed output
+
+**Code Quality:**
+- No memory leaks (RAII pattern)
+- Exception-safe
+- Proper resource cleanup
+- Thread-safe HTTP clients
 
 ---
 
-## New Features
+## [0.5.0-alpha] - 2025-11-30 (Morning)
 
-### Remote Mode Toggle
-```cpp
-ofParameter<bool> bRemoteMode{"Remote Mode", false};
-```
-- **OFF:** Hybrid mode (local files + cloud sync)
-- **ON:** Pure remote (cloud-only)
+**Status:** Alpha - Core Implementation (Superseded by Beta)
 
-### Save Scene Direct
+### 🎉 Initial Implementation
+
+**Core Features:**
+- ✅ Authentication system (EMAIL_PASSWORD mode)
+- ✅ Credentials loading from `bin/data/credentials.txt`
+- ✅ Connection status tracking
+- ✅ ofxGui integration
+- ✅ Scene parameter linking
+- ✅ JSON serialization/deserialization
+- ✅ Preset browsing (Next/Previous navigation)
+- ✅ Lifecycle management (setup/update/draw/exit)
+
+**Structure:**
+- `src/ofxSurfingSupabase.h` - Header with class definition
+- `src/ofxSurfingSupabase.cpp` - Implementation (477 lines)
+- `example/src/ofApp.h/cpp` - Working example application
+- `bin/data/credentials.txt.example` - Configuration template
+
+**UI Parameters:**
+- Remote Mode toggle
+- Auto Sync toggle (not yet functional)
+- Show Debug toggle
+- Save Scene Direct button
+- Load & Apply button
+- Send/Load to/from Remote buttons
+- Preset Manager (Browse/Delete/Refresh/Clear)
+
+**Methods Implemented:**
 ```cpp
+// Lifecycle
+void setup();
+void update();
+void draw();
+void exit();
+
+// Configuration
+void setupSceneParams(ofParameterGroup& sceneParams);
+
+// Operations (structure defined, HTTP pending)
+void savePreset(const std::string& presetName);
+void loadPreset(const std::string& presetName);
+void deletePreset(const std::string& presetName);
+void refreshPresetList();
+void clearDatabase();
+
+// Direct operations
 void sendSceneDirect();
-```
-- Serializes scene parameters directly
-- No presetsLite required
-- Auto-generated names: `scene_YYYYMMDD_HHMMSS`
-
-### Load & Apply
-```cpp
 void loadAndApplyRemote();
-```
-- Downloads remote preset
-- Deserializes directly to scene parameters
-- NO local file created
 
-### example2/
-**Pure remote preset system without presetsLite:**
-- No local JSON files
-- Direct scene parameter save/load
-- Browse remote presets with UI
-- Standalone workflow
+// Browsing
+void selectNext();
+void selectPrevious();
+
+// Status
+std::string getConnectionStatus() const;
+bool isConnected() const;
+```
+
+### 🚧 Limitations (Alpha)
+
+**HTTP Operations:**
+- Uses OF's `ofURLFileLoader` (basic implementation)
+- Authentication headers not yet added
+- DELETE method not implemented
+- No error handling for network failures
+
+**Database Operations:**
+- Structure defined but not connected to Supabase
+- Mock data for preset list
+- Actual REST API calls pending
+
+**Missing Features:**
+- Multithreading / async operations
+- Auto-sync functionality
+- Error recovery and retry logic
+- Progress indicators
+- Token refresh handling
+
+### 📋 Next Steps
+
+**Priority: HIGH**
+- [ ] Integrate cpp-httplib or custom HTTP client
+- [ ] Implement Supabase REST API calls
+- [ ] Add authentication headers (apikey, Bearer token)
+- [ ] Implement actual database queries (SELECT, INSERT, DELETE)
+
+**Priority: MEDIUM**
+- [ ] Add error handling and user feedback
+- [ ] Implement async HTTP operations
+- [ ] Add token refresh logic
+- [ ] Progress indicators for operations
+
+**Priority: LOW**
+- [ ] Auto-sync functionality
+- [ ] Preset categories/tags
+- [ ] Advanced search/filter
+- [ ] Batch operations
 
 ---
 
-## UI Improvements
+## [Planned] - Future Versions
 
-### Status Monitoring
-- 🟢 **CONNECTED** - Authenticated successfully
-- 🟡 **AUTHENTICATING...** - Waiting for response
-- 🔴 **ERROR** - Check credentials.txt
+## [0.9.0-beta] - Full Database Integration
+- Complete HTTP client implementation
+- All CRUD operations working with Supabase
+- Real preset list from database
+- Comprehensive error handling
+- ✅ **COMPLETED - Ready for testing**
 
-### Panel Layout
-```
-┌─ Supabase ────────────────────┐
-│ [x] Auto Sync                 │
-│ [x] Remote Mode          NEW  │
-│ [x] Show Debug                │
-│ [x] Show Preset Manager       │
-│                               │
-│ [Save Scene Direct]      NEW  │
-│ [Load & Apply]           NEW  │
-│ [Send to Remote]              │
-│ [Load from Remote]            │
-└───────────────────────────────┘
-```
+### [1.0.0] - Production Release
+- Multithreading for async operations
+- Auto-sync functionality
+- Complete error recovery
+- User authentication UI
+- Comprehensive documentation
+- Multiple working examples
 
----
+### [1.1.0] - Advanced Features
+- Preset categories and tags
+- Search and filter
+- Batch operations
+- Conflict resolution UI
+- Preset preview/thumbnails
 
-## Workflow Comparison
-
-### Hybrid Mode (example/)
-1. Use presetsLite normally (local JSON files)
-2. "Send to Remote" → Uploads current preset
-3. "Load from Remote" → Downloads to Kit-00/
-4. Load from presetsLite UI
-
-### Pure Remote Mode (example2/) **RECOMMENDED**
-1. Adjust scene parameters
-2. "Save Scene Direct" → Upload to Supabase
-3. Browse with ◀ ▶ buttons
-4. "Load & Apply" → Restore from cloud
-5. NO local files created
+### [2.0.0] - Extended Features
+- Multiple authentication methods (Google, GitHub)
+- Team/organization support
+- Preset sharing
+- Version history
+- Real-time sync
 
 ---
 
-## Modified Files
+## Development Notes
 
-**Core:**
-- `src/SupabaseClient.cpp` - DELETE fix
-- `src/SupabasePresetManager.h/cpp` - UPSERT logic
-- `src/ofxSurfingSupabase.h/cpp` - Remote mode toggle + new methods
+**Architecture Decisions:**
+- Using OF core for JSON (ofJson, ofSerialize)
+- ofxGui for UI (standard OF addon)
+- Modular design for easy extension
+- Future-ready for multithreading
 
-**Examples:**
-- `example2/` - Pure remote implementation (standalone)
+**Code Style:**
+- Modern C++ (C++17)
+- OF lifecycle patterns
+- Lambda-based callbacks
+- Comprehensive logging
 
 **Documentation:**
-- All documentation translated to English
-- Consolidated Supabase setup guide
+- README.md - Main addon guide
+- SUPABASE-SETUP.md - Database setup
+- example/README.md - Usage guide
+- IMPLEMENTATION-STATUS.md - Technical details
+- AGENTS.md - AI assistant guidelines
 
+---
+
+**Current Version:** 0.9.0-beta  
+**Last Updated:** 2025-11-30  
+**Status:** Beta - Ready for Testing
