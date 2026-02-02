@@ -7,17 +7,15 @@
 
 class ofApp : public ofBaseApp {
 public:
-  void setup();
-  void update();
-  void draw();
-  void keyPressed(int key);
-  void exit();
-  
+	void setup();
+	void update();
+	void draw();
+	void keyPressed(int key);
+	void exit();
+
 private:
-  SurfingSceneTesters scene;
+	SurfingSceneTesters scene;
 	ofxPanel guiScene;
 
-  ofxSurfingSupabase db;
-
-
+	ofxSurfingSupabase db;
 };

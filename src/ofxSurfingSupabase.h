@@ -29,6 +29,7 @@ public:
   // Browse presets
   void selectNext();
   void selectPrevious();
+  void selectedUpdate();
   
   // Direct scene operations (no local files)
   void sendSceneDirect();
@@ -51,6 +52,7 @@ public:
   ofParameter<void> vClearDatabase{"Clear Database"};
   ofParameter<void> vSelectNext{"Next >"};
   ofParameter<void> vSelectPrevious{"< Previous"};
+  ofParameter<int> vSelected{"Selected",0,0,10};
   
   // Status
   std::string getConnectionStatus() const;
@@ -119,6 +121,7 @@ private:
   ofEventListener e_vClearDatabase;
   ofEventListener e_vSelectNext;
   ofEventListener e_vSelectPrevious;
+  ofEventListener e_vSelected;
   
   // Constants
   static const std::string CREDENTIALS_PATH;

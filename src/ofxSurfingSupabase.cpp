@@ -47,6 +47,7 @@ void ofxSurfingSupabase::setupParameters() {
   paramsManager_.setName("Preset Manager");
   paramsManager_.add(vSelectPrevious);
   paramsManager_.add(vSelectNext);
+  paramsManager_.add(vSelected);
   paramsManager_.add(vRefreshList);
   paramsManager_.add(vDeleteSelected);
   paramsManager_.add(vClearDatabase);
@@ -732,6 +733,7 @@ void ofxSurfingSupabase::selectNext() {
   if (presetNames_.empty()) return;
   
   selectedPresetIndex_ = (selectedPresetIndex_ + 1) % presetNames_.size();
+
   ofLogNotice("ofxSurfingSupabase") << "Selected: " << presetNames_[selectedPresetIndex_];
 }
 
