@@ -17,6 +17,12 @@
 		},
 		{
 			"path": "${workspaceRoot}/../.."
+		},
+		{
+			"path": "${workspaceRoot}/../..\\..\\ofxGui"
+		},
+		{
+			"path": "${workspaceRoot}/../.."
 		}
 	],
 	"openFrameworksProjectGeneratorVersion": "0.103.0",
