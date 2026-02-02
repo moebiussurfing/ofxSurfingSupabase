@@ -48,8 +48,8 @@ void ofxSurfingSupabase::setupParameters() {
   
   paramsManager_.setName("Preset Manager");
   paramsManager_.add(selectedPresetIndex_);
-  paramsManager_.add(vSelectPrevious);
   paramsManager_.add(vSelectNext);
+  paramsManager_.add(vSelectPrevious);
   paramsManager_.add(vRefreshList);
   paramsManager_.add(vDeleteSelected);
   paramsManager_.add(vClearDatabase);
@@ -474,7 +474,7 @@ void ofxSurfingSupabase::draw() {
   
   if (!presetNames_.empty() && selectedPresetIndex_ >= 0 && selectedPresetIndex_ < presetNames_.size()) {
     std::string presetInfo = "Selected: " + presetNames_[selectedPresetIndex_.get()];
-    presetInfo += " (" + ofToString(selectedPresetIndex_.get() + 1) + "/" + ofToString(presetNames_.size()) + ")";
+    presetInfo += " (" + ofToString(selectedPresetIndex_.get()) + "/" + ofToString(presetNames_.size() - 1) + ")";
     ofSetColor(255);
 	ofDrawBitmapStringHighlight(presetInfo, x, y + 20);
   }

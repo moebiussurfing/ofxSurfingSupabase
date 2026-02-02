@@ -50,8 +50,8 @@ public:
   ofParameter<void> vRefreshList{"Refresh List"};
   ofParameter<void> vDeleteSelected{"Delete Selected"};
   ofParameter<void> vClearDatabase{"Clear Database"};
-  ofParameter<void> vSelectNext{"Next >"};
-  ofParameter<void> vSelectPrevious{"< Previous"};
+  ofParameter<void> vSelectNext{">"};
+  ofParameter<void> vSelectPrevious{"<"};
   ofParameter<int> selectedPresetIndex_{"Selected",0,0,10};
   
   // Status
