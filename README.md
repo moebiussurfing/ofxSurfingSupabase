@@ -32,12 +32,6 @@ Follow **[docs/SUPABASE-SETUP.md](docs/SUPABASE-SETUP.md)** to:
 
 ### 2. Configure Credentials
 
-Copy the template:
-```bash
-cd bin/data
-cp credentials.txt.example credentials.txt
-```
-
 Edit `bin/data/credentials.txt`:
 ```txt
 AUTH_MODE=EMAIL_PASSWORD
@@ -46,18 +40,6 @@ SUPABASE_ANON_KEY=eyJhbGc...your_anon_key
 EMAIL=test@ofxsurfing.com
 PASSWORD=testpass123
 ```
-
----
-
-## Usage
-
-### Keyboard Controls
-
-- **Space**: Save current scene directly to Supabase
-- **L**: Load selected preset and apply to scene
-- **Left/Right Arrow**: Browse presets
-- **R**: Refresh preset list from database
-- **Shift+D**: Clear entire database (WARNING!)
 
 ---
 
@@ -94,9 +76,7 @@ PASSWORD=testpass123
 
 ```cpp
 // Setup
-db.setupSceneParams(scene.params); // Link to scene
-db.bRemoteMode = true; // Pure remote mode
-//WIP: db.bRemoteBackup = false; // Remote + local backup
+db.setup(scene.params); // Link to scene
 
 // Save
 db.sendSceneDirect(); // Auto-generates timestamp name
@@ -115,7 +95,8 @@ db.selectedPresetIndex_ = 5; // Current index parameter to control
 ## Next Steps
 
 - Threading loader to avoid blocking UI
-- Integrate with your own presets manager parameter groups
+- Fix overwrite preset issues
+- Integrate with your own presets manager
 - Add custom preset naming
 - Add user login authentication UI
 - Implement preset categories/tags to handle multiple kits
