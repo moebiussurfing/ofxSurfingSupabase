@@ -1,6 +1,12 @@
-# ofxSurfingSupabase - Example
+# ofxSurfingSupabase
 
-Basic example demonstrating **pure remote mode** with Supabase integration.
+## WIP
+Presets (ofParametersGroup) management with Supabase backend database for openFrameworks.
+
+# Example
+
+Basic example demonstrating **pure remote mode** with Supabase integration.  
+Scene parameters are saved and loaded **directly** to/from the cloud database without using any local JSON files.
 
 ---
 
@@ -18,7 +24,7 @@ Basic example demonstrating **pure remote mode** with Supabase integration.
 
 ### 1. Configure Supabase
 
-Follow **[../SUPABASE-SETUP.md](../SUPABASE-SETUP.md)** to:
+Follow **[docs/SUPABASE-SETUP.md](docs/SUPABASE-SETUP.md)** to:
 - Create Supabase project
 - Create `presets` table
 - Create test user
@@ -41,16 +47,6 @@ EMAIL=test@ofxsurfing.com
 PASSWORD=testpass123
 ```
 
-### 3. Compile & Run
-
-Using Makefile:
-```bash
-make
-make run
-```
-
-Or use your IDE (Xcode, VS Code, etc.)
-
 ---
 
 ## Usage
@@ -63,14 +59,6 @@ Or use your IDE (Xcode, VS Code, etc.)
 - **R**: Refresh preset list from database
 - **Shift+D**: Clear entire database (WARNING!)
 
-### GUI Controls
-
-The Supabase panel shows:
-- **Remote Mode**: Toggle pure cloud mode
-- **Save Scene Direct**: Upload current parameters with timestamp name
-- **Load & Apply**: Download and apply selected preset
-- **Preset Manager**: Browse/delete presets
-
 ---
 
 ## Workflow
@@ -80,26 +68,7 @@ The Supabase panel shows:
 3. **Browse presets** with arrow keys or ◀ ▶ buttons
 4. **Press L** or click "Load & Apply" → Restores from cloud
 5. **NO local files** are created (pure remote)
-
----
-
-## Expected Output
-
-Console:
-```
-[notice] ofApp: setup()
-[notice] ofxSurfingSupabase: setup()
-[notice] ofxSurfingSupabase: Auth mode: EMAIL_PASSWORD
-[notice] ofxSurfingSupabase: Authenticated successfully
-[notice] ofxSurfingSupabase: User ID: abc123...
-[notice] ofApp: Setup complete
-```
-
-GUI Status:
-```
-Status: 🟢 CONNECTED
-Selected: scene_20251130_120000 (1/5)
-```
+6. Use `bAutoSync` to auto-load on preset change
 
 ---
 
@@ -125,8 +94,6 @@ Selected: scene_20251130_120000 (1/5)
 
 ```cpp
 // Setup
-scene.params.setName("Scene");
-db.setup();
 db.setupSceneParams(scene.params); // Link to scene
 db.bRemoteMode = true; // Pure remote mode
 
@@ -139,20 +106,14 @@ db.loadAndApplyRemote(); // Applies directly to scene.params
 // Browse
 db.selectNext();
 db.selectPrevious();
+db.selectedPresetIndex_; // Current index parameter to control
 ```
 
 ---
 
 ## Next Steps
 
-- Integrate with your own parameter groups
+- Integrate with your own presets manager parameter groups
 - Add custom preset naming
-- Implement multithreading for async operations
-- Add user authentication UI
-- Implement preset categories/tags
-
----
-
-**See also:**
-- [SUPABASE-SETUP.md](../SUPABASE-SETUP.md) - Database configuration
-- [README.md](../README.md) - Addon documentation
+- Add user login authentication UI
+- Implement preset categories/tags to handle multiple kits
