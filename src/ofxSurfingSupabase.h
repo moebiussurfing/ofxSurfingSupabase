@@ -32,20 +32,20 @@ public:
   void selectedUpdate();
   
   // Direct scene operations (no local files)
-  void sendSceneDirect();
+  // void sendSceneDirect();
   void loadAndApplyRemote();
   
   // UI Parameters
   ofParameter<bool> bConnected{"Connected", false};
-  ofParameter<bool> bRemoteMode{"Remote Mode", false};
-  ofParameter<bool> bAutoSync{"Auto Sync", false};
-  ofParameter<bool> bShowDebug{"Show Debug", true};
-  ofParameter<bool> bShowPresetManager{"Show Preset Manager", true};
-  
+  ofParameter<bool> bRemoteMode{"Remote Mode", true};
+  ofParameter<bool> bAutoSave{"Auto Save", false};
+  ofParameter<bool> bAutoLoad{"Auto Load", false};
+  ofParameter<bool> bGui{"Show Gui", true};
+  // ofParameter<bool> bShowPresetManager{"Show Preset Manager", true};
   ofParameter<void> vReconnect{"Reconnect"};
-  ofParameter<void> vSaveSceneDirect{"Save Scene Direct"};
-  ofParameter<void> vLoadAndApply{"Load & Apply"};
-  ofParameter<void> vSendToRemote{"Send to Remote"};
+  // ofParameter<void> vLoadAndApply{"Load"};
+  // ofParameter<void> vSaveSceneDirect{"Save Direct"};
+  ofParameter<void> vSaveToRemote{"Save to Remote"};
   ofParameter<void> vLoadFromRemote{"Load from Remote"};
   ofParameter<void> vRefreshList{"Refresh List"};
   ofParameter<void> vDeleteSelected{"Delete Selected"};
@@ -59,7 +59,8 @@ public:
   bool isConnected() const { return bConnected; }
   
 private:
-  
+  int selectedPresetIndex__Prev = -1;
+
   // Configuration
   struct SupabaseConfig {
     std::string authMode;
@@ -112,9 +113,9 @@ private:
   
   // Event listeners
   ofEventListener e_vReconnect;
-  ofEventListener e_vSaveSceneDirect;
-  ofEventListener e_vLoadAndApply;
-  ofEventListener e_vSendToRemote;
+  // ofEventListener e_vSaveSceneDirect;
+  // ofEventListener e_vLoadAndApply;
+  ofEventListener e_vSaveToRemote;
   ofEventListener e_vLoadFromRemote;
   ofEventListener e_vRefreshList;
   ofEventListener e_vDeleteSelected;

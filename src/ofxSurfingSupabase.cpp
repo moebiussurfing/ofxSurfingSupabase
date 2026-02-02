@@ -37,22 +37,23 @@ void ofxSurfingSupabase::setupParameters() {
   params_.setName("Supabase");
   params_.add(bConnected);
   params_.add(vReconnect);
-  params_.add(bRemoteMode);
-  params_.add(bAutoSync);
-  params_.add(bShowDebug);
-  params_.add(bShowPresetManager);
-  params_.add(vSaveSceneDirect);
-  params_.add(vLoadAndApply);
-  params_.add(vSendToRemote);
-  params_.add(vLoadFromRemote);
+  // params_.add(bRemoteMode);//TODO: implement remote/local mode
+  // params_.add(bShowPresetManager);//TODO: integrate external preset manager
+  params_.add(vRefreshList);
+  params_.add(vClearDatabase);
+  params_.add(bGui);
   
   paramsManager_.setName("Preset Manager");
   paramsManager_.add(selectedPresetIndex_);
   paramsManager_.add(vSelectNext);
   paramsManager_.add(vSelectPrevious);
-  paramsManager_.add(vRefreshList);
+  paramsManager_.add(bAutoLoad);
+  // paramsManager_.add(vLoadAndApply);
+  // paramsManager_.add(bAutoSave);
+  // paramsManager_.add(vSaveSceneDirect);
+  paramsManager_.add(vSaveToRemote);
+  paramsManager_.add(vLoadFromRemote);
   paramsManager_.add(vDeleteSelected);
-  paramsManager_.add(vClearDatabase);
   
   params_.add(paramsManager_);
 }
@@ -71,15 +72,16 @@ void ofxSurfingSupabase::setupCallbacks() {
     }
   });
   
-  e_vSaveSceneDirect = vSaveSceneDirect.newListener([this]() {
-    sendSceneDirect();
-  });
+  //TODO:
+  // e_vSaveSceneDirect = vSaveSceneDirect.newListener([this]() {
+  //   sendSceneDirect();
+  // });
   
-  e_vLoadAndApply = vLoadAndApply.newListener([this]() {
-    loadAndApplyRemote();
-  });
+  // e_vLoadAndApply = vLoadAndApply.newListener([this]() {
+  //   loadAndApplyRemote();
+  // });
   
-  e_vSendToRemote = vSendToRemote.newListener([this]() {
+  e_vSaveToRemote = vSaveToRemote.newListener([this]() {
     if (selectedPresetIndex_ >= 0 && selectedPresetIndex_ < presetNames_.size()) {
       savePreset(presetNames_[selectedPresetIndex_.get()]);
     }
@@ -188,7 +190,7 @@ bool ofxSurfingSupabase::loadCredentials() {
     else if (key == "PASSWORD") config_.password = value;
   }
   
-  if (bShowDebug) {
+  if (bGui) {
     ofLogNotice("ofxSurfingSupabase") << "Auth mode: " << config_.authMode;
     ofLogNotice("ofxSurfingSupabase") << "URL: " << config_.supabaseUrl;
   }
@@ -256,7 +258,7 @@ bool ofxSurfingSupabase::authenticate() {
           bConnected = true;
           
           ofLogNotice("ofxSurfingSupabase") << "✓ Authenticated successfully";
-          if (bShowDebug) {
+          if (bGui) {
             ofLogNotice("ofxSurfingSupabase") << "User ID: " << userId_;
           }
           
@@ -270,7 +272,7 @@ bool ofxSurfingSupabase::authenticate() {
         if (!res) {
           ofLogError("ofxSurfingSupabase") << "Error: " << httplib::to_string(res.error());
         }
-        if (bShowDebug) {
+        if (bGui) {
           ofLogError("ofxSurfingSupabase") << errorMsg;
         }
       }
@@ -306,7 +308,7 @@ ofxSurfingSupabase::HttpResponse ofxSurfingSupabase::httpGet(const std::string& 
       host = host.substr(7);
     }
     
-    if (bShowDebug) {
+    if (bGui) {
       ofLogNotice("ofxSurfingSupabase") << "HTTP GET: " << endpoint;
       ofLogNotice("ofxSurfingSupabase") << "Host: " << host;
     }
@@ -328,7 +330,7 @@ ofxSurfingSupabase::HttpResponse ofxSurfingSupabase::httpGet(const std::string& 
       result.body = res->body;
       result.success = (res->status >= 200 && res->status < 300);
       
-      if (bShowDebug) {
+      if (bGui) {
         ofLogNotice("ofxSurfingSupabase") << "Response: HTTP " << result.statusCode;
       }
     } else {
@@ -449,7 +451,7 @@ void ofxSurfingSupabase::update() {
 
 //--------------------------------------------------------------
 void ofxSurfingSupabase::draw() {
-  if (!bShowDebug) return;
+  if (!bGui) return;
   
   gui_.draw();
   
@@ -522,20 +524,20 @@ void ofxSurfingSupabase::deserializeJsonToScene(const std::string& jsonStr) {
   }
 }
 
-//--------------------------------------------------------------
-void ofxSurfingSupabase::sendSceneDirect() {
-  ofLogNotice("ofxSurfingSupabase") << "sendSceneDirect()";
+// //--------------------------------------------------------------
+// void ofxSurfingSupabase::sendSceneDirect() {
+//   // ofLogNotice("ofxSurfingSupabase") << "sendSceneDirect()";
   
-  if (!bConnected) {
-    ofLogWarning("ofxSurfingSupabase") << "Not connected";
-    return;
-  }
+//   // if (!bConnected) {
+//   //   ofLogWarning("ofxSurfingSupabase") << "Not connected";
+//   //   return;
+//   // }
   
-  std::string presetName = generateTimestampName();
-  std::string jsonData = serializeSceneToJson();
+//   // std::string presetName = generateTimestampName();
+//   // std::string jsonData = serializeSceneToJson();
   
-  savePreset(presetName);
-}
+//   // savePreset(presetName);
+// }
 
 //--------------------------------------------------------------
 void ofxSurfingSupabase::loadAndApplyRemote() {
@@ -574,19 +576,19 @@ void ofxSurfingSupabase::savePreset(const std::string& presetName) {
   std::string endpoint = "/rest/v1/" + TABLE_NAME;
   std::string body = insertData.dump();
   
-  if (bShowDebug) {
-    ofLogNotice("ofxSurfingSupabase") << "Saving to: " << endpoint;
-    ofLogNotice("ofxSurfingSupabase") << "Preset name: " << presetName;
+  if (bGui) {
+    ofLogNotice("ofxSurfingSupabase") << "savePreset(): Saving to: " << endpoint;
+    ofLogNotice("ofxSurfingSupabase") << "savePreset(): Preset name: " << presetName;
   }
   
   HttpResponse res = httpPost(endpoint, body);
   
   if (res.success) {
-    ofLogNotice("ofxSurfingSupabase") << "✓ Preset saved successfully";
+    ofLogNotice("ofxSurfingSupabase") << "savePreset(): ✓ Preset saved successfully";
     refreshPresetList();
   } else {
-    ofLogError("ofxSurfingSupabase") << "✗ Failed to save preset: HTTP " << res.statusCode;
-    if (bShowDebug) {
+    ofLogError("ofxSurfingSupabase") << "savePreset(): ✗ Failed to save preset: HTTP " << res.statusCode;
+    if (bGui) {
       ofLogError("ofxSurfingSupabase") << res.body;
     }
   }
@@ -597,7 +599,7 @@ void ofxSurfingSupabase::loadPreset(const std::string& presetName) {
   ofLogNotice("ofxSurfingSupabase") << "loadPreset(): " << presetName;
   
   if (!bConnected) {
-    ofLogWarning("ofxSurfingSupabase") << "Not connected";
+    ofLogWarning("ofxSurfingSupabase") << "loadPreset(): Not connected";
     return;
   }
   
@@ -613,16 +615,16 @@ void ofxSurfingSupabase::loadPreset(const std::string& presetName) {
       if (responseJson.is_array() && !responseJson.empty()) {
         std::string presetData = responseJson[0]["preset_data"].dump();
         deserializeJsonToScene(presetData);
-        ofLogNotice("ofxSurfingSupabase") << "✓ Preset loaded and applied";
+        ofLogNotice("ofxSurfingSupabase") << "loadPreset(): ✓ Preset loaded and applied";
       } else {
         ofLogWarning("ofxSurfingSupabase") << "Preset not found";
       }
     } catch (std::exception& e) {
-      ofLogError("ofxSurfingSupabase") << "Failed to parse response: " << e.what();
+      ofLogError("ofxSurfingSupabase") << "loadPreset(): Failed to parse response: " << e.what();
     }
   } else {
-    ofLogError("ofxSurfingSupabase") << "✗ Failed to load preset: HTTP " << res.statusCode;
-    if (bShowDebug) {
+    ofLogError("ofxSurfingSupabase") << "loadPreset(): ✗ Failed to load preset: HTTP " << res.statusCode;
+    if (bGui) {
       ofLogError("ofxSurfingSupabase") << res.body;
     }
   }
@@ -633,7 +635,7 @@ void ofxSurfingSupabase::deletePreset(const std::string& presetName) {
   ofLogNotice("ofxSurfingSupabase") << "deletePreset(): " << presetName;
   
   if (!bConnected) {
-    ofLogWarning("ofxSurfingSupabase") << "Not connected";
+    ofLogWarning("ofxSurfingSupabase") << "deletePreset(): Not connected";
     return;
   }
   
@@ -643,7 +645,7 @@ void ofxSurfingSupabase::deletePreset(const std::string& presetName) {
   HttpResponse res = httpDelete(endpoint);
   
   if (res.success) {
-    ofLogNotice("ofxSurfingSupabase") << "✓ Preset deleted successfully";
+    ofLogNotice("ofxSurfingSupabase") << "deletePreset(): ✓ Preset deleted successfully";
     refreshPresetList();
     
     // Adjust selected index if needed
@@ -654,8 +656,8 @@ void ofxSurfingSupabase::deletePreset(const std::string& presetName) {
     selectedPresetIndex_.setMin(0);
     selectedPresetIndex_.setMax(presetNames_.size() - 1);
   } else {
-    ofLogError("ofxSurfingSupabase") << "✗ Failed to delete preset: HTTP " << res.statusCode;
-    if (bShowDebug) {
+    ofLogError("ofxSurfingSupabase") << "deletePreset(): ✗ Failed to delete preset: HTTP " << res.statusCode;
+    if (bGui) {
       ofLogError("ofxSurfingSupabase") << res.body;
     }
   }
@@ -666,7 +668,7 @@ void ofxSurfingSupabase::refreshPresetList() {
   ofLogNotice("ofxSurfingSupabase") << "refreshPresetList()";
   
   if (!bConnected) {
-    ofLogWarning("ofxSurfingSupabase") << "Not connected";
+    ofLogWarning("ofxSurfingSupabase") << "refreshPresetList(): Not connected";
     return;
   }
   
@@ -705,11 +707,11 @@ void ofxSurfingSupabase::refreshPresetList() {
       }
       
     } catch (std::exception& e) {
-      ofLogError("ofxSurfingSupabase") << "Failed to parse preset list: " << e.what();
+      ofLogError("ofxSurfingSupabase") << "refreshPresetList(): Failed to parse preset list: " << e.what();
     }
   } else {
-    ofLogError("ofxSurfingSupabase") << "✗ Failed to refresh preset list: HTTP " << res.statusCode;
-    if (bShowDebug) {
+    ofLogError("ofxSurfingSupabase") << "refreshPresetList(): ✗ Failed to refresh preset list: HTTP " << res.statusCode;
+    if (bGui) {
       ofLogError("ofxSurfingSupabase") << res.body;
     }
   }
@@ -720,7 +722,7 @@ void ofxSurfingSupabase::clearDatabase() {
   ofLogNotice("ofxSurfingSupabase") << "clearDatabase()";
   
   if (!bConnected) {
-    ofLogWarning("ofxSurfingSupabase") << "Not connected";
+    ofLogWarning("ofxSurfingSupabase") << "clearDatabase(): Not connected";
     return;
   }
   
@@ -731,14 +733,14 @@ void ofxSurfingSupabase::clearDatabase() {
   HttpResponse res = httpDelete(endpoint);
   
   if (res.success) {
-    ofLogNotice("ofxSurfingSupabase") << "✓ Database cleared successfully";
+    ofLogNotice("ofxSurfingSupabase") << "clearDatabase(): ✓ Database cleared successfully";
     presetNames_.clear();
     selectedPresetIndex_ = -1;
     selectedPresetIndex_.setMin(-1);
     selectedPresetIndex_.setMax(-1);
   } else {
-    ofLogError("ofxSurfingSupabase") << "✗ Failed to clear database: HTTP " << res.statusCode;
-    if (bShowDebug) {
+    ofLogError("ofxSurfingSupabase") << "clearDatabase(): ✗ Failed to clear database: HTTP " << res.statusCode;
+    if (bGui) {
       ofLogError("ofxSurfingSupabase") << res.body;
     }
   }
@@ -756,7 +758,11 @@ void ofxSurfingSupabase::selectedUpdate() {
     selectedPresetIndex_ = selectedPresetIndex_.get() % presetNames_.size();//cycled
   }
 
-  ofLogNotice("ofxSurfingSupabase") << "selectedUpdate() Preset index: " << selectedPresetIndex_.get()<< " name:  " << presetNames_[selectedPresetIndex_.get()];
+  // auto load current preset index
+  if(bAutoLoad){
+    loadAndApplyRemote();
+  }
+  ofLogNotice("ofxSurfingSupabase") << "selectedUpdate(): Preset index: " << selectedPresetIndex_.get()<< " name:  " << presetNames_[selectedPresetIndex_.get()];
 }
 
 //--------------------------------------------------------------
@@ -765,7 +771,7 @@ void ofxSurfingSupabase::selectNext() {
   
   selectedPresetIndex_ = (selectedPresetIndex_.get() + 1) % presetNames_.size();//cycled
 
-  ofLogNotice("ofxSurfingSupabase") << "Selected: " << presetNames_[selectedPresetIndex_.get()];
+  ofLogNotice("ofxSurfingSupabase") << "selectNext(): Selected: " << presetNames_[selectedPresetIndex_.get()];
 }
 
 //--------------------------------------------------------------
@@ -777,13 +783,13 @@ void ofxSurfingSupabase::selectPrevious() {
   if (selectedPresetIndex_ < 0) {//cycled
     selectedPresetIndex_ = presetNames_.size() - 1;
   }
-  ofLogNotice("ofxSurfingSupabase") << "Selected: " << presetNames_[selectedPresetIndex_.get()];
+  ofLogNotice("ofxSurfingSupabase") << "selectPrevious(): Selected: " << presetNames_[selectedPresetIndex_.get()];
 }
 
 //--------------------------------------------------------------
 std::string ofxSurfingSupabase::getConnectionStatus() const {
-  if (bConnected) return "🟢 CONNECTED";
-  return "🔴 DISCONNECTED";
+  if (bConnected) return "CONNECTED";
+  return "DISCONNECTED";
 }
 
 //--------------------------------------------------------------

@@ -1,10 +1,12 @@
 #pragma once
 
 #include "ofMain.h"
+
 #include "ofxGui.h"
-#include "ofxSurfingSupabase.h"
 #include "surfingSceneTesters.h"
 #include "ofxSurfingHelpersParameters.h"
+
+#include "ofxSurfingSupabase.h"
 
 class ofApp : public ofBaseApp {
 public:

@@ -6,22 +6,23 @@ void ofApp::setup() {
   
   ofSetFrameRate(60);
   ofSetWindowTitle("ofxSurfingSupabase Example");
+
+  // Move window
   //ofSetWindowPosition(-ofGetWidth()-100, 100);//left monitor
-  // ofSetWindowPosition(3840+2160+100, 100);//right 4th FHD monitor
+  //ofSetWindowPosition(3840+2160+100, 100);//right 4th FHD monitor
 
   // Setup scene
   scene.params.setName("Scene");
   
   // Setup database
   db.setup(scene.params);
-  db.bRemoteMode = true; // Pure remote mode
   
   // Gui scene
   guiScene.setup(scene.params);
   guiScene.setPosition(ofGetWidth() - guiScene.getWidth() - 10, 10);
   guiScene.add(vRandomize);
 
-  // randomizer
+  // Scene randomizer
   e_vRandomize = vRandomize.newListener([this]() {
     ofxSurfing::doRandomize(scene.params);
   });
@@ -40,37 +41,42 @@ void ofApp::draw() {
   
   // Draw scene
   scene.draw();
+
+  // UI Debug
+  if(!db.bGui) return;
+
+  // Scene UI
   guiScene.draw();
   
   // Draw database UI
   db.draw();
   
   // Draw instructions
-  int y = ofGetHeight() - 80;
-  ofSetColor(255);
+  int y = ofGetHeight() - 140;
   ofDrawBitmapStringHighlight("CONTROLS:", 20, y);
-  ofDrawBitmapStringHighlight("Space: Save Scene Direct", 20, y + 20);
-  ofDrawBitmapStringHighlight("L: Load & Apply Remote", 20, y + 40);
-  ofDrawBitmapStringHighlight("Left/Right: Browse Presets", 20, y + 60);
+  ofDrawBitmapStringHighlight("G: Toggle Gui", 20, y + 20);
+  ofDrawBitmapStringHighlight(">: Next Preset", 20, y + 40);
+  ofDrawBitmapStringHighlight("<: Previous Preset", 20, y + 60);
+  ofDrawBitmapStringHighlight("L: Load", 20, y + 80);
+  ofDrawBitmapStringHighlight("S: Save", 20, y + 100);
+  ofDrawBitmapStringHighlight("R: Refresh", 20, y + 120);
 }
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key) {
-  if (key == ' ') {
-    db.sendSceneDirect();
+  if (key == 's') {
+    db.vSaveToRemote.trigger();
   } else if (key == 'l' || key == 'L') {
     db.loadAndApplyRemote();
+  }else if (key == 'g' || key == 'G') {
+    db.bGui = !db.bGui;
   } else if (key == OF_KEY_LEFT) {
     db.selectPrevious();
   } else if (key == OF_KEY_RIGHT) {
     db.selectNext();
   } else if (key == 'r' || key == 'R') {
     db.refreshPresetList();
-  } else if (key == 'd' || key == 'D') {
-    if (ofGetKeyPressed(OF_KEY_SHIFT)) {
-      db.clearDatabase();
-    }
-  }
+  } 
 }
 
 //--------------------------------------------------------------

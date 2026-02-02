@@ -96,6 +96,7 @@ PASSWORD=testpass123
 // Setup
 db.setupSceneParams(scene.params); // Link to scene
 db.bRemoteMode = true; // Pure remote mode
+//WIP: db.bRemoteBackup = false; // Remote + local backup
 
 // Save
 db.sendSceneDirect(); // Auto-generates timestamp name
@@ -106,13 +107,14 @@ db.loadAndApplyRemote(); // Applies directly to scene.params
 // Browse
 db.selectNext();
 db.selectPrevious();
-db.selectedPresetIndex_; // Current index parameter to control
+db.selectedPresetIndex_ = 5; // Current index parameter to control
 ```
 
 ---
 
 ## Next Steps
 
+- Threading loader to avoid blocking UI
 - Integrate with your own presets manager parameter groups
 - Add custom preset naming
 - Add user login authentication UI
