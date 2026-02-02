@@ -6,7 +6,7 @@
 class ofxSurfingSupabase {
   // Lifecycle
 private:
-  // Setup scene parameters to manage
+  // Setup scene parameters to manage. Auto calls setup()
   void setupPresetParameters(ofParameterGroup& sceneParams);
 
 public:

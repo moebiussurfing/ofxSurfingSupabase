@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ofMain.h"
+#include "ofxGui.h"
 #include "ofxSurfingSupabase.h"
 #include "surfingSceneTesters.h"
 
@@ -14,5 +15,9 @@ public:
   
 private:
   SurfingSceneTesters scene;
+	ofxPanel guiScene;
+
   ofxSurfingSupabase db;
+
+
 };

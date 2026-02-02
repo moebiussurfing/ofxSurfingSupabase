@@ -224,6 +224,7 @@ bool ofxSurfingSupabase::authenticate() {
       client.set_connection_timeout(10, 0);
       client.set_read_timeout(10, 0);
       client.set_write_timeout(10, 0);
+      client.enable_server_certificate_verification(false);
       
       // Build auth request
       ofJson authData;
@@ -259,6 +260,9 @@ bool ofxSurfingSupabase::authenticate() {
       } else {
         std::string errorMsg = res ? res->body : "Connection failed";
         ofLogError("ofxSurfingSupabase") << "✗ Authentication failed: HTTP " << (res ? res->status : 0);
+        if (!res) {
+          ofLogError("ofxSurfingSupabase") << "Error: " << httplib::to_string(res.error());
+        }
         if (bShowDebug) {
           ofLogError("ofxSurfingSupabase") << errorMsg;
         }
@@ -750,8 +754,13 @@ std::string ofxSurfingSupabase::getConnectionStatus() const {
 
 //--------------------------------------------------------------
 bool ofxSurfingSupabase::SupabaseConfig::isValid() const {
-  return !supabaseUrl.empty() && 
-         !supabaseAnonKey.empty() && 
-         !email.empty() && 
-         !password.empty();
+	if (authMode == "ANON_KEY") {
+		return !supabaseUrl.empty() && !supabaseAnonKey.empty();
+	}
+
+	if (authMode == "EMAIL_PASSWORD") {
+		return !supabaseUrl.empty() && !supabaseAnonKey.empty() && !email.empty() && !password.empty();
+	}
+
+	return false;
 }

@@ -6,7 +6,8 @@ void ofApp::setup() {
   
   ofSetFrameRate(60);
   ofSetWindowTitle("ofxSurfingSupabase Example");
-  ofSetWindowPosition(-1920, 25);
+  //ofSetWindowPosition(-ofGetWidth()-100, 100);//left monitor
+  ofSetWindowPosition(3840+2160+100, 100);//right 4th monitor
 
   // Setup scene
   scene.params.setName("Scene");
@@ -14,7 +15,10 @@ void ofApp::setup() {
   // Setup database
   db.setup(scene.params);
   db.bRemoteMode = true; // Pure remote mode
-  
+
+  guiScene.setup(scene.params);
+  guiScene.setPosition(ofGetWidth() - guiScene.getWidth() - 10, 10);
+
   ofLogNotice("ofApp") << "Setup complete";
 }
 
@@ -29,6 +33,7 @@ void ofApp::draw() {
   
   // Draw scene
   scene.draw();
+  guiScene.draw();
   
   // Draw database UI
   db.draw();
