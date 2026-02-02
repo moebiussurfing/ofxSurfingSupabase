@@ -1,11 +1,13 @@
 # ofxSurfingSupabase
 
-## WIP
-Presets (ofParametersGroup) management with Supabase backend database for openFrameworks.
+## WIP: blueprint currenltly under development. Use at your own risk!
+### Login works but preset saving/loading workflow may have issues.
 
-# Example
+Presets (**ofParametersGroup**) management with Supabase backend database for openFrameworks.
 
-Basic example demonstrating **pure remote mode** with Supabase integration.  
+## Example
+
+Basic example demonstrating **pure remote mode** with **Supabase** integration.  
 Scene parameters are saved and loaded **directly** to/from the cloud database without using any local JSON files.
 
 ---
@@ -46,11 +48,11 @@ PASSWORD=testpass123
 ## Workflow
 
 1. **Adjust scene parameters** (colors, amount, scale, etc.)
-2. **Press Space** or click "Save Scene Direct" → Uploads to cloud
+2. **Press Space** or click "Save To Remote" → Uploads to cloud
 3. **Browse presets** with arrow keys or ◀ ▶ buttons
 4. **Press L** or click "Load & Apply" → Restores from cloud
-5. **NO local files** are created (pure remote)
-6. Use `bAutoSync` to auto-load on preset change
+5. **NO local JSON files** are created (pure remote)
+6. Use **Auto Load** to auto-load on preset change
 
 ---
 
@@ -76,23 +78,12 @@ PASSWORD=testpass123
 
 ```cpp
 // Setup
-db.setup(scene.params); // Link to scene
-
-// Save
-db.sendSceneDirect(); // Auto-generates timestamp name
-
-// Load
-db.loadAndApplyRemote(); // Applies directly to scene.params
-
-// Browse
-db.selectNext();
-db.selectPrevious();
-db.selectedPresetIndex_ = 5; // Current index parameter to control
+db.setup(scene.params); // Link to scene`s ofParameterGroup
 ```
 
 ---
 
-## Next Steps
+## TODO
 
 - Threading loader to avoid blocking UI
 - Fix overwrite preset issues
