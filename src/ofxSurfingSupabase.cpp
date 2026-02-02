@@ -5,11 +5,13 @@
 
 // Constants
 const std::string ofxSurfingSupabase::CREDENTIALS_PATH = "credentials.txt";
-const std::string ofxSurfingSupabase::TABLE_NAME = "presets";
+const std::string ofxSurfingSupabase::TABLE_NAME = "presets";//TODO: to be used as kit name, alowing multiple kits
+//TODO: add tag to be used as kit name filtering for multiple kits
 
 //--------------------------------------------------------------
 void ofxSurfingSupabase::setup(ofParameterGroup & sceneParams) {
 	ofLogNotice("ofxSurfingSupabase") << "setup(" << sceneParams.getName() << ")";
+
 	setup();
 	setupPresetParameters(sceneParams);
 }
@@ -45,9 +47,9 @@ void ofxSurfingSupabase::setupParameters() {
   params_.add(vLoadFromRemote);
   
   paramsManager_.setName("Preset Manager");
+  paramsManager_.add(selectedPresetIndex_);
   paramsManager_.add(vSelectPrevious);
   paramsManager_.add(vSelectNext);
-  paramsManager_.add(vSelected);
   paramsManager_.add(vRefreshList);
   paramsManager_.add(vDeleteSelected);
   paramsManager_.add(vClearDatabase);
@@ -79,13 +81,13 @@ void ofxSurfingSupabase::setupCallbacks() {
   
   e_vSendToRemote = vSendToRemote.newListener([this]() {
     if (selectedPresetIndex_ >= 0 && selectedPresetIndex_ < presetNames_.size()) {
-      savePreset(presetNames_[selectedPresetIndex_]);
+      savePreset(presetNames_[selectedPresetIndex_.get()]);
     }
   });
   
   e_vLoadFromRemote = vLoadFromRemote.newListener([this]() {
     if (selectedPresetIndex_ >= 0 && selectedPresetIndex_ < presetNames_.size()) {
-      loadPreset(presetNames_[selectedPresetIndex_]);
+      loadPreset(presetNames_[selectedPresetIndex_.get()]);
     }
   });
   
@@ -95,7 +97,7 @@ void ofxSurfingSupabase::setupCallbacks() {
   
   e_vDeleteSelected = vDeleteSelected.newListener([this]() {
     if (selectedPresetIndex_ >= 0 && selectedPresetIndex_ < presetNames_.size()) {
-      deletePreset(presetNames_[selectedPresetIndex_]);
+      deletePreset(presetNames_[selectedPresetIndex_.get()]);
     }
   });
   
@@ -109,6 +111,10 @@ void ofxSurfingSupabase::setupCallbacks() {
   
   e_vSelectPrevious = vSelectPrevious.newListener([this]() {
     selectPrevious();
+  });
+
+  e_selectedPresetIndex_ = selectedPresetIndex_.newListener([this](int& i){
+    selectedUpdate();
   });
 }
 
@@ -467,8 +473,8 @@ void ofxSurfingSupabase::draw() {
   ofDrawBitmapStringHighlight(status, x, y);
   
   if (!presetNames_.empty() && selectedPresetIndex_ >= 0 && selectedPresetIndex_ < presetNames_.size()) {
-    std::string presetInfo = "Selected: " + presetNames_[selectedPresetIndex_];
-    presetInfo += " (" + ofToString(selectedPresetIndex_ + 1) + "/" + ofToString(presetNames_.size()) + ")";
+    std::string presetInfo = "Selected: " + presetNames_[selectedPresetIndex_.get()];
+    presetInfo += " (" + ofToString(selectedPresetIndex_.get() + 1) + "/" + ofToString(presetNames_.size()) + ")";
     ofSetColor(255);
 	ofDrawBitmapStringHighlight(presetInfo, x, y + 20);
   }
@@ -545,7 +551,7 @@ void ofxSurfingSupabase::loadAndApplyRemote() {
     return;
   }
   
-  loadPreset(presetNames_[selectedPresetIndex_]);
+  loadPreset(presetNames_[selectedPresetIndex_.get()]);
 }
 
 //--------------------------------------------------------------
@@ -644,6 +650,9 @@ void ofxSurfingSupabase::deletePreset(const std::string& presetName) {
     if (selectedPresetIndex_ >= presetNames_.size() && !presetNames_.empty()) {
       selectedPresetIndex_ = presetNames_.size() - 1;
     }
+    //clamp selected index
+    selectedPresetIndex_.setMin(0);
+    selectedPresetIndex_.setMax(presetNames_.size() - 1);
   } else {
     ofLogError("ofxSurfingSupabase") << "✗ Failed to delete preset: HTTP " << res.statusCode;
     if (bShowDebug) {
@@ -682,10 +691,15 @@ void ofxSurfingSupabase::refreshPresetList() {
       
       ofLogNotice("ofxSurfingSupabase") << "✓ Found " << presetNames_.size() << " presets";
       
+      //clamp selected index
+      selectedPresetIndex_.setMin(0);
+      selectedPresetIndex_.setMax(presetNames_.size() - 1);
+
       if (!presetNames_.empty() && selectedPresetIndex_ < 0) {
         selectedPresetIndex_ = 0;
       }
       
+      //clamp index
       if (selectedPresetIndex_ >= presetNames_.size()) {
         selectedPresetIndex_ = presetNames_.empty() ? -1 : presetNames_.size() - 1;
       }
@@ -720,6 +734,8 @@ void ofxSurfingSupabase::clearDatabase() {
     ofLogNotice("ofxSurfingSupabase") << "✓ Database cleared successfully";
     presetNames_.clear();
     selectedPresetIndex_ = -1;
+    selectedPresetIndex_.setMin(-1);
+    selectedPresetIndex_.setMax(-1);
   } else {
     ofLogError("ofxSurfingSupabase") << "✗ Failed to clear database: HTTP " << res.statusCode;
     if (bShowDebug) {
@@ -729,23 +745,39 @@ void ofxSurfingSupabase::clearDatabase() {
 }
 
 //--------------------------------------------------------------
+void ofxSurfingSupabase::selectedUpdate() {
+  if (presetNames_.empty()) return;
+  
+  // clamp index
+  if (selectedPresetIndex_ < 0) {//cycled
+    selectedPresetIndex_ = presetNames_.size() - 1;
+  }
+  if (selectedPresetIndex_ > presetNames_.size()-1) {//cycled
+    selectedPresetIndex_ = selectedPresetIndex_.get() % presetNames_.size();//cycled
+  }
+
+  ofLogNotice("ofxSurfingSupabase") << "selectedUpdate() Preset index: " << selectedPresetIndex_.get()<< " name:  " << presetNames_[selectedPresetIndex_.get()];
+}
+
+//--------------------------------------------------------------
 void ofxSurfingSupabase::selectNext() {
   if (presetNames_.empty()) return;
   
-  selectedPresetIndex_ = (selectedPresetIndex_ + 1) % presetNames_.size();
+  selectedPresetIndex_ = (selectedPresetIndex_.get() + 1) % presetNames_.size();//cycled
 
-  ofLogNotice("ofxSurfingSupabase") << "Selected: " << presetNames_[selectedPresetIndex_];
+  ofLogNotice("ofxSurfingSupabase") << "Selected: " << presetNames_[selectedPresetIndex_.get()];
 }
 
 //--------------------------------------------------------------
 void ofxSurfingSupabase::selectPrevious() {
   if (presetNames_.empty()) return;
   
-  selectedPresetIndex_--;
-  if (selectedPresetIndex_ < 0) {
+  // selectedPresetIndex_--;
+  selectedPresetIndex_ = selectedPresetIndex_.get() - 1;
+  if (selectedPresetIndex_ < 0) {//cycled
     selectedPresetIndex_ = presetNames_.size() - 1;
   }
-  ofLogNotice("ofxSurfingSupabase") << "Selected: " << presetNames_[selectedPresetIndex_];
+  ofLogNotice("ofxSurfingSupabase") << "Selected: " << presetNames_[selectedPresetIndex_.get()];
 }
 
 //--------------------------------------------------------------

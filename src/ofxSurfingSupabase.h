@@ -52,7 +52,7 @@ public:
   ofParameter<void> vClearDatabase{"Clear Database"};
   ofParameter<void> vSelectNext{"Next >"};
   ofParameter<void> vSelectPrevious{"< Previous"};
-  ofParameter<int> vSelected{"Selected",0,0,10};
+  ofParameter<int> selectedPresetIndex_{"Selected",0,0,10};
   
   // Status
   std::string getConnectionStatus() const;
@@ -103,7 +103,7 @@ private:
   ofParameterGroup* sceneParams_;
   
   std::vector<std::string> presetNames_;
-  int selectedPresetIndex_;
+  // int selectedPresetIndex_;
   
   // UI
   ofxPanel gui_;
@@ -121,7 +121,7 @@ private:
   ofEventListener e_vClearDatabase;
   ofEventListener e_vSelectNext;
   ofEventListener e_vSelectPrevious;
-  ofEventListener e_vSelected;
+  ofEventListener e_selectedPresetIndex_;
   
   // Constants
   static const std::string CREDENTIALS_PATH;

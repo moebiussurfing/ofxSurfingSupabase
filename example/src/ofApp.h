@@ -4,6 +4,7 @@
 #include "ofxGui.h"
 #include "ofxSurfingSupabase.h"
 #include "surfingSceneTesters.h"
+#include "ofxSurfingHelpersParameters.h"
 
 class ofApp : public ofBaseApp {
 public:
@@ -16,6 +17,8 @@ public:
 private:
 	SurfingSceneTesters scene;
 	ofxPanel guiScene;
+	ofParameter<void> vRandomize{"Randomize"};
+	ofEventListener e_vRandomize;
 
 	ofxSurfingSupabase db;
 };

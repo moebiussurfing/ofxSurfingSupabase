@@ -7,7 +7,7 @@ void ofApp::setup() {
   ofSetFrameRate(60);
   ofSetWindowTitle("ofxSurfingSupabase Example");
   //ofSetWindowPosition(-ofGetWidth()-100, 100);//left monitor
-  ofSetWindowPosition(3840+2160+100, 100);//right 4th monitor
+  // ofSetWindowPosition(3840+2160+100, 100);//right 4th FHD monitor
 
   // Setup scene
   scene.params.setName("Scene");
@@ -15,11 +15,18 @@ void ofApp::setup() {
   // Setup database
   db.setup(scene.params);
   db.bRemoteMode = true; // Pure remote mode
-
+  
+  // Gui scene
   guiScene.setup(scene.params);
   guiScene.setPosition(ofGetWidth() - guiScene.getWidth() - 10, 10);
+  guiScene.add(vRandomize);
 
-  ofLogNotice("ofApp") << "Setup complete";
+  // randomizer
+  e_vRandomize = vRandomize.newListener([this]() {
+    ofxSurfing::doRandomize(scene.params);
+  });
+
+  ofLogNotice("ofApp") << "setup(): Setup complete";
 }
 
 //--------------------------------------------------------------
