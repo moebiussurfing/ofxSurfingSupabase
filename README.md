@@ -54,8 +54,7 @@ class ofApp : public ofBaseApp {
     
     void setup() {
         scene.setup();
-        db.setup();
-        db.setupSceneParams(scene.params);
+        db.setup(scene.params); // Preset parameters
         db.bRemoteMode = true; // Pure remote
     }
     

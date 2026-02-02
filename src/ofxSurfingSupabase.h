@@ -6,12 +6,11 @@
 class ofxSurfingSupabase {
   // Lifecycle
 private:
-  void setup();
-  
   // Setup scene parameters to manage
   void setupPresetParameters(ofParameterGroup& sceneParams);
 
 public:
+  void setup(); // Only for using with a external presets manager
   void setup(ofParameterGroup & sceneParams);
 
   void update();
