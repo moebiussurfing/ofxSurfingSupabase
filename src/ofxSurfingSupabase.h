@@ -4,17 +4,22 @@
 #include "ofxGui.h"
 
 class ofxSurfingSupabase {
-public:
-  
   // Lifecycle
+private:
   void setup();
+  
+  // Setup scene parameters to manage
+  void setupPresetParameters(ofParameterGroup& sceneParams);
+
+public:
+  void setup(ofParameterGroup & sceneParams);
+
   void update();
   void draw();
   void exit();
-  
-  // Setup scene parameters to manage
-  void setupSceneParams(ofParameterGroup& sceneParams);
-  
+
+  //--
+   
   // Remote operations
   void savePreset(const std::string& presetName);
   void loadPreset(const std::string& presetName);

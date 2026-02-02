@@ -8,6 +8,13 @@ const std::string ofxSurfingSupabase::CREDENTIALS_PATH = "credentials.txt";
 const std::string ofxSurfingSupabase::TABLE_NAME = "presets";
 
 //--------------------------------------------------------------
+void ofxSurfingSupabase::setup(ofParameterGroup & sceneParams) {
+	ofLogNotice("ofxSurfingSupabase") << "setup(" << sceneParams.getName() << ")";
+	setup();
+	setupPresetParameters(sceneParams);
+}
+
+//--------------------------------------------------------------
 void ofxSurfingSupabase::setup() {
   ofLogNotice("ofxSurfingSupabase") << "setup()";
   
@@ -130,8 +137,8 @@ void ofxSurfingSupabase::exit() {
 }
 
 //--------------------------------------------------------------
-void ofxSurfingSupabase::setupSceneParams(ofParameterGroup& sceneParams) {
-  ofLogNotice("ofxSurfingSupabase") << "setupSceneParams()";
+void ofxSurfingSupabase::setupPresetParameters(ofParameterGroup& sceneParams) {
+  ofLogNotice("ofxSurfingSupabase") << "setupPresetParameters()";
   sceneParams_ = &sceneParams;
 }
 
@@ -436,8 +443,8 @@ void ofxSurfingSupabase::draw() {
   gui_.draw();
   
   // Draw status
-  int x = gui_.getPosition().x;
-  int y = gui_.getPosition().y + gui_.getHeight() + 10;
+  int x = gui_.getPosition().x+5;
+  int y = gui_.getPosition().y + gui_.getHeight() + 20;
   
   std::string status = "Status: ";
   ofColor statusColor;
@@ -452,13 +459,13 @@ void ofxSurfingSupabase::draw() {
   
   ofPushStyle();
   ofSetColor(statusColor);
-  ofDrawBitmapString(status, x, y);
+  ofDrawBitmapStringHighlight(status, x, y);
   
   if (!presetNames_.empty() && selectedPresetIndex_ >= 0 && selectedPresetIndex_ < presetNames_.size()) {
     std::string presetInfo = "Selected: " + presetNames_[selectedPresetIndex_];
     presetInfo += " (" + ofToString(selectedPresetIndex_ + 1) + "/" + ofToString(presetNames_.size()) + ")";
     ofSetColor(255);
-    ofDrawBitmapString(presetInfo, x, y + 20);
+	ofDrawBitmapStringHighlight(presetInfo, x, y + 20);
   }
   
   ofPopStyle();

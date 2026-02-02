@@ -6,13 +6,13 @@ void ofApp::setup() {
   
   ofSetFrameRate(60);
   ofSetWindowTitle("ofxSurfingSupabase Example");
-  
+  ofSetWindowPosition(-1920, 25);
+
   // Setup scene
   scene.params.setName("Scene");
   
   // Setup database
-  db.setup();
-  db.setupSceneParams(scene.params);
+  db.setup(scene.params);
   db.bRemoteMode = true; // Pure remote mode
   
   ofLogNotice("ofApp") << "Setup complete";
@@ -36,10 +36,10 @@ void ofApp::draw() {
   // Draw instructions
   int y = ofGetHeight() - 80;
   ofSetColor(255);
-  ofDrawBitmapString("CONTROLS:", 20, y);
-  ofDrawBitmapString("Space: Save Scene Direct", 20, y + 20);
-  ofDrawBitmapString("L: Load & Apply Remote", 20, y + 40);
-  ofDrawBitmapString("Left/Right: Browse Presets", 20, y + 60);
+  ofDrawBitmapStringHighlight("CONTROLS:", 20, y);
+  ofDrawBitmapStringHighlight("Space: Save Scene Direct", 20, y + 20);
+  ofDrawBitmapStringHighlight("L: Load & Apply Remote", 20, y + 40);
+  ofDrawBitmapStringHighlight("Left/Right: Browse Presets", 20, y + 60);
 }
 
 //--------------------------------------------------------------
