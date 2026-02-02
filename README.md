@@ -1,197 +1,121 @@
 # ofxSurfingSupabase
 
-**Supabase integration for openFrameworks - Remote preset management**
+## WIP
+Presets (ofParametersGroup) management with Supabase backend database for openFrameworks.
+
+# Example
+
+Basic example demonstrating **pure remote mode** with Supabase integration.  
+Scene parameters are saved and loaded **directly** to/from the cloud database without using any local JSON files.
 
 ---
 
-## ✨ Features
+## Features Demonstrated
 
-✅ **Email/Password authentication**  
-✅ **Remote JSON preset storage** (PostgreSQL + jsonb)  
-✅ **Two workflow modes:**
-   - **Hybrid:** Local files + Cloud sync  
-   - **Pure Remote:** Cloud-first, no local files  
-✅ **Browse/Load/Save/Delete** from database  
-✅ **ofxGui integration**  
-✅ **Direct scene parameter serialization**  
+✅ Email/Password authentication  
+✅ Direct scene parameter save/load  
+✅ Browse remote presets  
+✅ No local JSON files (cloud-first)  
+✅ ofxGui integration  
 
 ---
 
-## 🚀 Quick Start
+## Setup
 
-### 1. Setup Supabase (5 minutes)
+### 1. Configure Supabase
 
-See **[SUPABASE-SETUP.md](SUPABASE-SETUP.md)** for step-by-step guide:
-- Create project
-- Create `presets` table (SQL provided)
-- Create user
+Follow **[docs/SUPABASE-SETUP.md](docs/SUPABASE-SETUP.md)** to:
+- Create Supabase project
+- Create `presets` table
+- Create test user
 - Get credentials
 
 ### 2. Configure Credentials
 
-`bin/data/credentials.txt`:
+Copy the template:
+```bash
+cd bin/data
+cp credentials.txt.example credentials.txt
 ```
+
+Edit `bin/data/credentials.txt`:
+```txt
 AUTH_MODE=EMAIL_PASSWORD
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_ANON_KEY=eyJhbGc...your_anon_key
 EMAIL=test@ofxsurfing.com
-PASSWORD=yourpassword
-```
-
-### 3. Choose Your Mode
-
-#### Option A: Pure Remote (Recommended - see example2/)
-
-**Standalone cloud preset system:**
-
-```cpp
-#include "ofxSurfingSupabase.h"
-#include "surfingSceneTesters.h"
-
-class ofApp : public ofBaseApp {
-    SurfingSceneTesters scene;
-    ofxSurfingSupabase db;
-    
-    void setup() {
-        scene.setup();
-        db.setup(scene.params); // Preset parameters
-        db.bRemoteMode = true; // Pure remote
-    }
-    
-    void draw() {
-        db.draw(); // Shows connection status + UI
-    }
-};
-```
-
-**Workflow:**
-- Adjust scene parameters
-- Click **"Save Scene Direct"** → Uploads to Supabase
-- Browse with **◀ ▶** buttons
-- Click **"Load & Apply"** → Restore from cloud
-- **NO local JSON files** created
-
-#### Option B: Hybrid (Local + Cloud - see example/)
-
-**With ofxSurfingPresetsLite integration:**
-
-```cpp
-#include "ofxSurfingSupabase.h"
-#include "ofxSurfingPresetsLiteOfxGui.h"
-
-class ofApp : public ofBaseApp {
-    SurfingPresetsLite presetsManager;
-    ofxSurfingSupabase db;
-    
-    void setup() {
-        presetsManager.setup(scene.params);
-        db.setup();
-        db.syncWithPresetsManager(presetsManager);
-    }
-    
-    void draw() {
-        presetsManager.drawGui();
-        db.draw();
-    }
-};
-```
-
-**Workflow:**
-- Work with presetsLite normally (local JSON files)
-- Click **"Send to Remote"** → Upload selected preset
-- Click **"Load from Remote"** → Download and save locally
-
----
-
-## 📂 Examples
-
-### [example2/](example2/) - Pure Remote 🆕 **RECOMMENDED**
-- Direct scene parameter save/load
-- Cloud-only workflow
-- No presetsLite dependency
-- See `example2/README.md`
-
-### [example/](example/) - Hybrid Mode
-- Local JSON files + Cloud sync
-- presetsLite integration
-- Traditional workflow
-
----
-
-## 📚 Documentation
-
-- **[SUPABASE-SETUP.md](SUPABASE-SETUP.md)** - Database configuration guide
-- **[docs/CHANGELOG.md](docs/CHANGELOG.md)** - Recent changes and fixes
-- **[example2/README.md](example2/README.md)** - Pure remote mode guide
-- **[AI-AGENTS-GUIDE.md](AI-AGENTS-GUIDE.md)** - For AI assistants
-
----
-
-## 🎛️ UI Panel
-
-```
-┌─ Supabase ────────────────────┐
-│ Status: 🟢 CONNECTED          │
-│ Auth: EMAIL_PASSWORD          │
-│                               │
-│ [x] Auto Sync (OFF)           │
-│ [x] Remote Mode (ON)          │
-│ [x] Show Debug                │
-│ [x] Show Preset Manager       │
-│                               │
-│ [Save Scene Direct]           │ ← Direct from params
-│ [Load & Apply]                │ ← Apply without file
-│                               │
-│ Preset Manager:               │
-│ ◀ Previous | Next ▶           │
-│ scene_20251127_032145         │
-│ [Delete Selected]             │
-│ [Refresh List]                │
-└───────────────────────────────┘
+PASSWORD=testpass123
 ```
 
 ---
 
-## 🔧 Dependencies
+## Usage
 
-**Required:**
-- `ofxGui` (OF core addon)
-- `ofxSurfingHelpersLite`
+### Keyboard Controls
 
-**Optional (for hybrid mode):**
-- `ofxSurfingPresetsLite`
+- **Space**: Save current scene directly to Supabase
+- **L**: Load selected preset and apply to scene
+- **Left/Right Arrow**: Browse presets
+- **R**: Refresh preset list from database
+- **Shift+D**: Clear entire database (WARNING!)
 
 ---
 
-## 🐛 Troubleshooting
+## Workflow
 
-**Status shows RED:**
+1. **Adjust scene parameters** (colors, amount, scale, etc.)
+2. **Press Space** or click "Save Scene Direct" → Uploads to cloud
+3. **Browse presets** with arrow keys or ◀ ▶ buttons
+4. **Press L** or click "Load & Apply" → Restores from cloud
+5. **NO local files** are created (pure remote)
+6. Use `bAutoSync` to auto-load on preset change
+
+---
+
+## Troubleshooting
+
+**Red status / Not connected:**
 - Check `credentials.txt` exists in `bin/data/`
-- Verify SUPABASE_URL and SUPABASE_ANON_KEY
+- Verify URL and API key are correct
 - Check network connection
 
-**"Authentication failed":**
+**Authentication failed:**
 - Email/password incorrect
-- User not created in Supabase Dashboard
-- Email confirmations not disabled
+- User not created in Supabase dashboard
+- Email confirmation not disabled
 
-**"DELETE failed: 400":**
-- RLS policies not configured (see SUPABASE-SETUP.md)
-
----
-
-## 📄 License
-
-MIT
+**No presets shown:**
+- Database empty (upload some first)
+- RLS policies not configured correctly
 
 ---
 
-## 👤 Author
+## Code Structure
 
-**ofxSurfing** - moebiusSurfing  
-https://github.com/moebiusSurfing
+```cpp
+// Setup
+db.setupSceneParams(scene.params); // Link to scene
+db.bRemoteMode = true; // Pure remote mode
+//WIP: db.bRemoteBackup = false; // Remote + local backup
+
+// Save
+db.sendSceneDirect(); // Auto-generates timestamp name
+
+// Load
+db.loadAndApplyRemote(); // Applies directly to scene.params
+
+// Browse
+db.selectNext();
+db.selectPrevious();
+db.selectedPresetIndex_ = 5; // Current index parameter to control
+```
 
 ---
 
-**Version:** 1.0.0  
-**Last Updated:** 2025-11-27
+## Next Steps
+
+- Threading loader to avoid blocking UI
+- Integrate with your own presets manager parameter groups
+- Add custom preset naming
+- Add user login authentication UI
+- Implement preset categories/tags to handle multiple kits
