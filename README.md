@@ -1,7 +1,7 @@
 # ofxSurfingSupabase
 
-## WIP: blueprint currenltly under development. Use at your own risk!
-### Login works but preset saving/loading workflow may have issues.
+### _WIP: blueprint currenltly under development. Use at your own risk!_
+### _Login works but preset saving/loading workflow may have issues._
 
 Presets (**ofParametersGroup**) management with Supabase backend database for openFrameworks.
 
