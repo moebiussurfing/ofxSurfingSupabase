@@ -592,3 +592,4 @@ example2/bin/data/credentials.txt
 example2/.vscode/browse.db
 example2/.vscode/browse.db-shm
 example2/.vscode/browse.db-wal
+example/example.code-workspace
