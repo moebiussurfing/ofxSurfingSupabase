@@ -15,7 +15,7 @@ void ofApp::setup() {
 
 	//--
 
-	// Setup database
+	// Setup remote database
 	db.setup(scene.params);
 
 	//--

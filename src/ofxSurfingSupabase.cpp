@@ -457,6 +457,29 @@ void ofxSurfingSupabase::update() {
 			ofLogNotice("ofxSurfingSupabase") << "loadPreset(): ✓ Preset loaded and applied (" << presetName << ")";
 		}
 	}
+
+	if (hasPendingPresetList_.load()) {
+		std::vector<std::string> presetList;
+		{
+			std::lock_guard<std::mutex> lock(pendingPresetListMutex_);
+			presetList = pendingPresetList_;
+			pendingPresetList_.clear();
+			hasPendingPresetList_ = false;
+		}
+
+		presetsNamesRemote = presetList;
+		ofLogNotice("ofxSurfingSupabase") << "✓ Found " << presetsNamesRemote.size() << " presets";
+
+		int newMin = presetsNamesRemote.empty() ? -1 : 0;
+		int newMax = presetsNamesRemote.empty() ? -1 : static_cast<int>(presetsNamesRemote.size()) - 1;
+		int value = presetsNamesRemote.empty() ? -1 : ofClamp(selectedPresetIndexRemote.get(), newMin, newMax);
+
+		if (selectedPresetIndexRemote.getMin() != newMin || selectedPresetIndexRemote.getMax() != newMax) {
+			selectedPresetIndexRemote.set(selectedPresetIndexRemote.getName(), value, newMin, newMax);
+		} else {
+			selectedPresetIndexRemote = value;
+		}
+	}
 }
 
 //--------------------------------------------------------------
@@ -512,6 +535,11 @@ void ofxSurfingSupabase::draw() {
 			static const std::string spinner = "|/-\\";
 			char tick = spinner[ofGetFrameNum() % spinner.size()];
 			std::string wait = "Loading preset  " + std::string(1, tick);
+			ofDrawBitmapStringHighlight(wait, x, y, ofColor::black, ofColor::yellow);
+		} else if (isSavingRemote_.load()) {
+			static const std::string spinner = "|/-\\";
+			char tick = spinner[ofGetFrameNum() % spinner.size()];
+			std::string wait = "Saving preset   " + std::string(1, tick);
 			ofDrawBitmapStringHighlight(wait, x, y, ofColor::black, ofColor::yellow);
 		} else {
 			std::string wait = "                 ";
@@ -634,41 +662,79 @@ void ofxSurfingSupabase::savePreset(const std::string & presetName) {
 		return;
 	}
 
-	std::string jsonData = serializeSceneToJson();
-	ofJson presetJson;
-
-	try {
-		presetJson = ofJson::parse(jsonData);
-	} catch (std::exception & e) {
-		ofLogError("ofxSurfingSupabase") << "savePreset(): Invalid JSON: " << e.what();
+	if (isSavingRemote_.exchange(true)) {
+		ofLogWarning("ofxSurfingSupabase") << "savePreset(): Save already in progress";
 		return;
 	}
 
-	// Build upsert request
-	ofJson insertData;
-	insertData["user_id"] = userId_;
-	insertData["preset_name"] = presetName;
-	insertData["preset_data"] = presetJson;
+	std::string presetNameCopy = presetName;
+	std::string jsonData = serializeSceneToJson();
 
-	std::string endpoint = "/rest/v1/" + TABLE_NAME + "?on_conflict=user_id,preset_name";
-	std::string body = insertData.dump();
+	std::thread([this, presetNameCopy, jsonData]() {
+		ofJson presetJson;
 
-	if (bDebug) {
-		ofLogNotice("ofxSurfingSupabase") << "savePreset(): Saving to: " << endpoint;
-		ofLogNotice("ofxSurfingSupabase") << "savePreset(): Preset name: " << presetName;
-	}
-
-	HttpResponse res = httpPost(endpoint, body);
-
-	if (res.success) {
-		ofLogNotice("ofxSurfingSupabase") << "savePreset(): ✓ Preset saved successfully";
-		refreshPresetListRemote();
-	} else {
-		ofLogError("ofxSurfingSupabase") << "savePreset(): ✗ Failed to save preset: HTTP " << res.statusCode;
-		if (bDebug) {
-			ofLogError("ofxSurfingSupabase") << res.body;
+		try {
+			presetJson = ofJson::parse(jsonData);
+		} catch (std::exception & e) {
+			ofLogError("ofxSurfingSupabase") << "savePreset(): Invalid JSON: " << e.what();
+			isSavingRemote_ = false;
+			return;
 		}
-	}
+
+		ofJson insertData;
+		insertData["user_id"] = userId_;
+		insertData["preset_name"] = presetNameCopy;
+		insertData["preset_data"] = presetJson;
+
+		std::string endpoint = "/rest/v1/" + TABLE_NAME + "?on_conflict=user_id,preset_name";
+		std::string body = insertData.dump();
+
+		if (bDebug) {
+			ofLogNotice("ofxSurfingSupabase") << "savePreset(): Saving to: " << endpoint;
+			ofLogNotice("ofxSurfingSupabase") << "savePreset(): Preset name: " << presetNameCopy;
+		}
+
+		HttpResponse res = httpPost(endpoint, body);
+
+		if (res.success) {
+			ofLogNotice("ofxSurfingSupabase") << "savePreset(): ✓ Preset saved successfully";
+
+			std::string listEndpoint = "/rest/v1/" + TABLE_NAME + "?user_id=eq." + userId_ + "&select=preset_name&order=created_at.asc";
+			HttpResponse listRes = httpGet(listEndpoint);
+			if (listRes.success) {
+				try {
+					ofJson responseJson = ofJson::parse(listRes.body);
+					std::vector<std::string> list;
+					if (responseJson.is_array()) {
+						for (auto & item : responseJson) {
+							if (item.contains("preset_name")) {
+								list.push_back(item["preset_name"].get<std::string>());
+							}
+						}
+					}
+					{
+						std::lock_guard<std::mutex> lock(pendingPresetListMutex_);
+						pendingPresetList_ = std::move(list);
+						hasPendingPresetList_ = true;
+					}
+				} catch (std::exception & e) {
+					ofLogError("ofxSurfingSupabase") << "savePreset(): Failed to parse preset list: " << e.what();
+				}
+			} else {
+				ofLogError("ofxSurfingSupabase") << "savePreset(): Failed to refresh preset list: HTTP " << listRes.statusCode;
+				if (bDebug) {
+					ofLogError("ofxSurfingSupabase") << listRes.body;
+				}
+			}
+		} else {
+			ofLogError("ofxSurfingSupabase") << "savePreset(): ✗ Failed to save preset: HTTP " << res.statusCode;
+			if (bDebug) {
+				ofLogError("ofxSurfingSupabase") << res.body;
+			}
+		}
+
+		isSavingRemote_ = false;
+	}).detach();
 }
 
 //--------------------------------------------------------------
@@ -680,45 +746,85 @@ void ofxSurfingSupabase::savePresetNew(const std::string & presetName) {
 		return;
 	}
 
-	std::string jsonData = serializeSceneToJson();
-	ofJson presetJson;
-
-	try {
-		presetJson = ofJson::parse(jsonData);
-	} catch (std::exception & e) {
-		ofLogError("ofxSurfingSupabase") << "savePresetNew(): Invalid JSON: " << e.what();
+	if (isSavingRemote_.exchange(true)) {
+		ofLogWarning("ofxSurfingSupabase") << "savePresetNew(): Save already in progress";
 		return;
 	}
 
 	std::string baseName = presetName.empty() ? generateTimestampName() : presetName;
-	std::string endpoint = "/rest/v1/" + TABLE_NAME;
+	std::string jsonData = serializeSceneToJson();
 
-	for (int attempt = 0; attempt < 100; ++attempt) {
-		std::string name = (attempt == 0) ? baseName : baseName + "_" + ofToString(attempt);
+	std::thread([this, baseName, jsonData]() {
+		ofJson presetJson;
 
-		ofJson insertData;
-		insertData["user_id"] = userId_;
-		insertData["preset_name"] = name;
-		insertData["preset_data"] = presetJson;
-
-		HttpResponse res = httpPost(endpoint, insertData.dump());
-
-		if (res.success) {
-			ofLogNotice("ofxSurfingSupabase") << "savePresetNew(): ✓ Preset saved as: " << name;
-			refreshPresetListRemote();
+		try {
+			presetJson = ofJson::parse(jsonData);
+		} catch (std::exception & e) {
+			ofLogError("ofxSurfingSupabase") << "savePresetNew(): Invalid JSON: " << e.what();
+			isSavingRemote_ = false;
 			return;
 		}
 
-		if (res.statusCode != 409) {
-			ofLogError("ofxSurfingSupabase") << "savePresetNew(): ✗ Failed to save preset: HTTP " << res.statusCode;
-			if (bDebug) {
-				ofLogError("ofxSurfingSupabase") << res.body;
+		std::string endpoint = "/rest/v1/" + TABLE_NAME;
+
+		for (int attempt = 0; attempt < 100; ++attempt) {
+			std::string name = (attempt == 0) ? baseName : baseName + "_" + ofToString(attempt);
+
+			ofJson insertData;
+			insertData["user_id"] = userId_;
+			insertData["preset_name"] = name;
+			insertData["preset_data"] = presetJson;
+
+			HttpResponse res = httpPost(endpoint, insertData.dump());
+
+			if (res.success) {
+				ofLogNotice("ofxSurfingSupabase") << "savePresetNew(): ✓ Preset saved as: " << name;
+
+				std::string listEndpoint = "/rest/v1/" + TABLE_NAME + "?user_id=eq." + userId_ + "&select=preset_name&order=created_at.asc";
+				HttpResponse listRes = httpGet(listEndpoint);
+				if (listRes.success) {
+					try {
+						ofJson responseJson = ofJson::parse(listRes.body);
+						std::vector<std::string> list;
+						if (responseJson.is_array()) {
+							for (auto & item : responseJson) {
+								if (item.contains("preset_name")) {
+									list.push_back(item["preset_name"].get<std::string>());
+								}
+							}
+						}
+						{
+							std::lock_guard<std::mutex> lock(pendingPresetListMutex_);
+							pendingPresetList_ = std::move(list);
+							hasPendingPresetList_ = true;
+						}
+					} catch (std::exception & e) {
+						ofLogError("ofxSurfingSupabase") << "savePresetNew(): Failed to parse preset list: " << e.what();
+					}
+				} else {
+					ofLogError("ofxSurfingSupabase") << "savePresetNew(): Failed to refresh preset list: HTTP " << listRes.statusCode;
+					if (bDebug) {
+						ofLogError("ofxSurfingSupabase") << listRes.body;
+					}
+				}
+
+				isSavingRemote_ = false;
+				return;
 			}
-			return;
-		}
-	}
 
-	ofLogError("ofxSurfingSupabase") << "savePresetNew(): ✗ Failed to find unique name";
+			if (res.statusCode != 409) {
+				ofLogError("ofxSurfingSupabase") << "savePresetNew(): ✗ Failed to save preset: HTTP " << res.statusCode;
+				if (bDebug) {
+					ofLogError("ofxSurfingSupabase") << res.body;
+				}
+				isSavingRemote_ = false;
+				return;
+			}
+		}
+
+		ofLogError("ofxSurfingSupabase") << "savePresetNew(): ✗ Failed to find unique name";
+		isSavingRemote_ = false;
+	}).detach();
 }
 
 //--------------------------------------------------------------

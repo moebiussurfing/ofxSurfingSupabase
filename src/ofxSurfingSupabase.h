@@ -114,6 +114,10 @@ private:
 	std::mutex pendingPresetMutex_;
 	std::string pendingPresetJson_;
 	std::string pendingPresetName_;
+	std::atomic<bool> isSavingRemote_{false};
+	std::atomic<bool> hasPendingPresetList_{false};
+	std::mutex pendingPresetListMutex_;
+	std::vector<std::string> pendingPresetList_;
 
 	// UI
 	ofxPanel gui_;

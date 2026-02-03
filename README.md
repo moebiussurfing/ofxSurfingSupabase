@@ -18,7 +18,7 @@ Scene parameters are saved and loaded **directly** to/from the cloud database wi
 ✅ Email/Password authentication  
 ✅ Direct scene parameter save/load  
 ✅ Browse remote presets  
-✅ Threading loader to avoid blocking UI  
+✅ Threading loader/saver to avoid blocking UI  
 ✅ No local JSON files (cloud-first)  
 ✅ ofxGui integration  
 
@@ -51,10 +51,11 @@ PASSWORD=testpass123
 
 1. **Adjust scene parameters** (colors, amount, scale, etc.)
 2. **Browse presets** with arrow keys or ◀ ▶ buttons
-3. **Press S** or click "Save To Remote" → Uploads to cloud
+3. **Press S / N** or click "Save To Remote" "Save to New" → Uploads to cloud
 4. **Press L** or click "Load & Apply" → Restores from cloud
 5. **NO local JSON files** are created (pure remote)
 6. Use **Auto Load** to auto-load on preset index change
+7. Or use **UI widgets/ofParameters** for your own UI
 
 ---
 
