@@ -3,7 +3,7 @@
 ### _WIP: blueprint currenltly under development. Use at your own risk!_
 ### _Login works but preset saving/loading workflow may have issues._
 
-[](Screenshot.png)
+![](Screenshot.png)
 
 Presets (**ofParametersGroup**) management with Supabase backend database for openFrameworks.
 
