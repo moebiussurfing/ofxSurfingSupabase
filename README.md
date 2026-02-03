@@ -18,7 +18,7 @@ Scene parameters are saved and loaded **directly** to/from the cloud database wi
 ✅ Email/Password authentication  
 ✅ Direct scene parameter save/load  
 ✅ Browse remote presets  
-✅ Threading loader to avoid blocking UI
+✅ Threading loader to avoid blocking UI  
 ✅ No local JSON files (cloud-first)  
 ✅ ofxGui integration  
 
