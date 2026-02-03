@@ -1,11 +1,10 @@
 # ofxSurfingSupabase
 
-### _WIP: blueprint currenltly under development. Use at your own risk!_
-### _Login works but preset saving/loading workflow may have issues._
+### _WIP: Blueprint currenltly under development. Use at your own risk!_
 
 ![](Screenshot.png)
 
-Presets (**ofParametersGroup**) management with Supabase backend database for openFrameworks.
+Remote presets (**ofParametersGroup**) management with Supabase backend database for openFrameworks.
 
 ## Example
 
@@ -19,6 +18,7 @@ Scene parameters are saved and loaded **directly** to/from the cloud database wi
 ✅ Email/Password authentication  
 ✅ Direct scene parameter save/load  
 ✅ Browse remote presets  
+✅ Threading loader to avoid blocking UI
 ✅ No local JSON files (cloud-first)  
 ✅ ofxGui integration  
 
@@ -62,16 +62,14 @@ PASSWORD=testpass123
 
 ```cpp
 // Setup
-db.setup(scene.params); // Link to scene`s ofParameterGroup
+db.setup(scene.params); // Link to scene`s ofParameterGroup parameters
 ```
 
 ---
 
 ## TODO
 
-- Threading loader to avoid blocking UI
-- Fix overwrite, new preset, save copy... preset issues
 - Integrate with your own external presets manager
 - Add custom preset naming
-- Add user login authentication UI, auth0
+- Add user login authentication UI, auth0, Google...etc
 - Implement preset categories/tags to handle multiple kits

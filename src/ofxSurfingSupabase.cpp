@@ -37,11 +37,10 @@ void ofxSurfingSupabase::setupParameters() {
 	params_.setName("Supabase");
 	params_.add(bConnected);
 	params_.add(vReconnect);
-	// params_.add(bRemoteMode);//TODO: implement remote/local mode
-	// params_.add(bShowPresetManager);//TODO: integrate external preset manager
 	params_.add(vRefreshListRemote);
 	params_.add(vClearDatabase);
 	params_.add(bKeys);
+	params_.add(bDebug);
 	params_.add(bGui);
 
 	paramsManager_.setName("Preset Manager");
@@ -49,10 +48,8 @@ void ofxSurfingSupabase::setupParameters() {
 	paramsManager_.add(vSelectNextRemote);
 	paramsManager_.add(vSelectPreviousRemote);
 	paramsManager_.add(bAutoLoad);
-	// paramsManager_.add(vLoadAndApply);
-	// paramsManager_.add(bAutoSave);
-	// paramsManager_.add(vSaveSceneDirect);
 	paramsManager_.add(vSaveToRemote);
+	paramsManager_.add(vSaveNewRemote);
 	paramsManager_.add(vLoadFromRemote);
 	paramsManager_.add(vDeleteSelectedRemote);
 
@@ -73,19 +70,14 @@ void ofxSurfingSupabase::setupCallbacks() {
 		}
 	});
 
-	//TODO:
-	// e_vSaveSceneDirect = vSaveSceneDirect.newListener([this]() {
-	//   sendSceneDirect();
-	// });
-
-	// e_vLoadAndApply = vLoadAndApply.newListener([this]() {
-	//   loadAndApplyRemote();
-	// });
-
 	e_vSaveToRemote = vSaveToRemote.newListener([this]() {
 		if (selectedPresetIndexRemote >= 0 && selectedPresetIndexRemote < presetsNamesRemote.size()) {
 			savePreset(presetsNamesRemote[selectedPresetIndexRemote.get()]);
 		}
+	});
+
+	e_vSaveNewRemote = vSaveNewRemote.newListener([this]() {
+		savePresetNew(generateTimestampName());
 	});
 
 	e_vLoadFromRemote = vLoadFromRemote.newListener([this]() {
@@ -194,7 +186,7 @@ bool ofxSurfingSupabase::loadCredentials() {
 			config_.password = value;
 	}
 
-	if (bGui) {
+	if (bDebug) {
 		ofLogNotice("ofxSurfingSupabase") << "Auth mode: " << config_.authMode;
 		ofLogNotice("ofxSurfingSupabase") << "URL: " << config_.supabaseUrl;
 	}
@@ -261,7 +253,7 @@ bool ofxSurfingSupabase::authenticate() {
 					bConnected = true;
 
 					ofLogNotice("ofxSurfingSupabase") << "✓ Authenticated successfully";
-					if (bGui) {
+					if (bDebug) {
 						ofLogNotice("ofxSurfingSupabase") << "User ID: " << userId_;
 					}
 
@@ -275,7 +267,7 @@ bool ofxSurfingSupabase::authenticate() {
 				if (!res) {
 					ofLogError("ofxSurfingSupabase") << "Error: " << httplib::to_string(res.error());
 				}
-				if (bGui) {
+				if (bDebug) {
 					ofLogError("ofxSurfingSupabase") << errorMsg;
 				}
 			}
@@ -310,7 +302,7 @@ ofxSurfingSupabase::HttpResponse ofxSurfingSupabase::httpGet(const std::string &
 			host = host.substr(7);
 		}
 
-		if (bGui) {
+		if (bDebug) {
 			ofLogNotice("ofxSurfingSupabase") << "HTTP GET: " << endpoint;
 			ofLogNotice("ofxSurfingSupabase") << "Host: " << host;
 		}
@@ -332,7 +324,7 @@ ofxSurfingSupabase::HttpResponse ofxSurfingSupabase::httpGet(const std::string &
 			result.body = res->body;
 			result.success = (res->status >= 200 && res->status < 300);
 
-			if (bGui) {
+			if (bDebug) {
 				ofLogNotice("ofxSurfingSupabase") << "Response: HTTP " << result.statusCode;
 			}
 		} else {
@@ -448,7 +440,23 @@ ofxSurfingSupabase::HttpResponse ofxSurfingSupabase::httpDelete(const std::strin
 
 //--------------------------------------------------------------
 void ofxSurfingSupabase::update() {
-	// Reserved for future async operations
+	if (hasPendingPreset_.load()) {
+		std::string presetData;
+		std::string presetName;
+		{
+			std::lock_guard<std::mutex> lock(pendingPresetMutex_);
+			presetData = pendingPresetJson_;
+			presetName = pendingPresetName_;
+			pendingPresetJson_.clear();
+			pendingPresetName_.clear();
+			hasPendingPreset_ = false;
+		}
+
+		if (!presetData.empty()) {
+			deserializeJsonToScene(presetData);
+			ofLogNotice("ofxSurfingSupabase") << "loadPreset(): ✓ Preset loaded and applied (" << presetName << ")";
+		}
+	}
 }
 
 //--------------------------------------------------------------
@@ -463,8 +471,10 @@ void ofxSurfingSupabase::keyPressed(int key) {
 		selectNextRemote();
 	} else if (key == OF_KEY_LEFT) {
 		selectPreviousRemote();
-	} else if (key == 's') {
+	} else if (key == 's' || key == 'S') {
 		vSaveToRemote.trigger();
+	} else if (key == 'n' || key == 'N') {
+		vSaveNewRemote.trigger();
 	} else if (key == 'l' || key == 'L') {
 		loadAndApplyRemote();
 	} else if (key == 'r' || key == 'R') {
@@ -474,13 +484,13 @@ void ofxSurfingSupabase::keyPressed(int key) {
 
 //--------------------------------------------------------------
 void ofxSurfingSupabase::draw() {
-	if (!bGui) return;
+	if (!bGui && !bDebug) return;
 
 	gui_.draw();
 
-		// Draw status
-		int x = gui_.getPosition().x + 5;
-		int y = gui_.getPosition().y + gui_.getHeight() + 20;
+	// Draw status
+	int x = gui_.getPosition().x + 5;
+	int y = gui_.getPosition().y + gui_.getHeight() + 20;
 
 	if (bDebug) {
 
@@ -495,6 +505,17 @@ void ofxSurfingSupabase::draw() {
 			statusColor = ofColor::red;
 		}
 		ofDrawBitmapStringHighlight(status, x, y, ofColor::black, statusColor);
+
+		y = y + 20;
+		if (isLoadingRemote_.load()) {
+			static const std::string spinner = "|/-\\";
+			char tick = spinner[ofGetFrameNum() % spinner.size()];
+			std::string wait = "Loading preset  " + std::string(1, tick);
+			ofDrawBitmapStringHighlight(wait, x, y, ofColor::black, ofColor::yellow);
+		} else {
+			std::string wait = "                 ";
+			ofDrawBitmapStringHighlight(wait, x, y, ofColor::black, ofColor::yellow);
+		}
 
 		// Selected
 		if (!presetsNamesRemote.empty() && selectedPresetIndexRemote >= 0 && selectedPresetIndexRemote < presetsNamesRemote.size()) {
@@ -521,7 +542,8 @@ void ofxSurfingSupabase::draw() {
 
 	// Keys info
 	if (bKeys) {
-		y = ofGetHeight() - 8 * 20;
+		x = ofGetWidth() - 200;
+		y = ofGetHeight() - 9 * 20;
 		ofDrawBitmapStringHighlight("KEYS", x, y);
 		y = y + 20;
 		ofDrawBitmapStringHighlight("G: Toggle Gui", x, y);
@@ -534,7 +556,9 @@ void ofxSurfingSupabase::draw() {
 		y = y + 20;
 		ofDrawBitmapStringHighlight("L: Load", x, y);
 		y = y + 20;
-		ofDrawBitmapStringHighlight("S: Save", x, y);
+		ofDrawBitmapStringHighlight("S: Save (Overwrite)", x, y);
+		y = y + 20;
+		ofDrawBitmapStringHighlight("N: Save New", x, y);
 		y = y + 20;
 		ofDrawBitmapStringHighlight("R: Refresh", x, y);
 	}
@@ -580,21 +604,6 @@ void ofxSurfingSupabase::deserializeJsonToScene(const std::string & jsonStr) {
 	}
 }
 
-// //--------------------------------------------------------------
-// void ofxSurfingSupabase::sendSceneDirect() {
-//   // ofLogNotice("ofxSurfingSupabase") << "sendSceneDirect()";
-
-//   // if (!bConnected) {
-//   //   ofLogWarning("ofxSurfingSupabase") << "Not connected";
-//   //   return;
-//   // }
-
-//   // std::string presetName = generateTimestampName();
-//   // std::string jsonData = serializeSceneToJson();
-
-//   // savePreset(presetName);
-// }
-
 //--------------------------------------------------------------
 void ofxSurfingSupabase::loadAndApplyRemote() {
 	ofLogNotice("ofxSurfingSupabase") << "loadAndApplyRemote()";
@@ -622,17 +631,25 @@ void ofxSurfingSupabase::savePreset(const std::string & presetName) {
 	}
 
 	std::string jsonData = serializeSceneToJson();
+	ofJson presetJson;
 
-	// Build insert request
+	try {
+		presetJson = ofJson::parse(jsonData);
+	} catch (std::exception & e) {
+		ofLogError("ofxSurfingSupabase") << "savePreset(): Invalid JSON: " << e.what();
+		return;
+	}
+
+	// Build upsert request
 	ofJson insertData;
 	insertData["user_id"] = userId_;
 	insertData["preset_name"] = presetName;
-	insertData["preset_data"] = ofJson::parse(jsonData);
+	insertData["preset_data"] = presetJson;
 
-	std::string endpoint = "/rest/v1/" + TABLE_NAME;
+	std::string endpoint = "/rest/v1/" + TABLE_NAME + "?on_conflict=user_id,preset_name";
 	std::string body = insertData.dump();
 
-	if (bGui) {
+	if (bDebug) {
 		ofLogNotice("ofxSurfingSupabase") << "savePreset(): Saving to: " << endpoint;
 		ofLogNotice("ofxSurfingSupabase") << "savePreset(): Preset name: " << presetName;
 	}
@@ -644,10 +661,60 @@ void ofxSurfingSupabase::savePreset(const std::string & presetName) {
 		refreshPresetListRemote();
 	} else {
 		ofLogError("ofxSurfingSupabase") << "savePreset(): ✗ Failed to save preset: HTTP " << res.statusCode;
-		if (bGui) {
+		if (bDebug) {
 			ofLogError("ofxSurfingSupabase") << res.body;
 		}
 	}
+}
+
+//--------------------------------------------------------------
+void ofxSurfingSupabase::savePresetNew(const std::string & presetName) {
+	ofLogNotice("ofxSurfingSupabase") << "savePresetNew(): " << presetName;
+
+	if (!bConnected) {
+		ofLogWarning("ofxSurfingSupabase") << "Not connected";
+		return;
+	}
+
+	std::string jsonData = serializeSceneToJson();
+	ofJson presetJson;
+
+	try {
+		presetJson = ofJson::parse(jsonData);
+	} catch (std::exception & e) {
+		ofLogError("ofxSurfingSupabase") << "savePresetNew(): Invalid JSON: " << e.what();
+		return;
+	}
+
+	std::string baseName = presetName.empty() ? generateTimestampName() : presetName;
+	std::string endpoint = "/rest/v1/" + TABLE_NAME;
+
+	for (int attempt = 0; attempt < 100; ++attempt) {
+		std::string name = (attempt == 0) ? baseName : baseName + "_" + ofToString(attempt);
+
+		ofJson insertData;
+		insertData["user_id"] = userId_;
+		insertData["preset_name"] = name;
+		insertData["preset_data"] = presetJson;
+
+		HttpResponse res = httpPost(endpoint, insertData.dump());
+
+		if (res.success) {
+			ofLogNotice("ofxSurfingSupabase") << "savePresetNew(): ✓ Preset saved as: " << name;
+			refreshPresetListRemote();
+			return;
+		}
+
+		if (res.statusCode != 409) {
+			ofLogError("ofxSurfingSupabase") << "savePresetNew(): ✗ Failed to save preset: HTTP " << res.statusCode;
+			if (bDebug) {
+				ofLogError("ofxSurfingSupabase") << res.body;
+			}
+			return;
+		}
+	}
+
+	ofLogError("ofxSurfingSupabase") << "savePresetNew(): ✗ Failed to find unique name";
 }
 
 //--------------------------------------------------------------
@@ -659,30 +726,44 @@ void ofxSurfingSupabase::loadPreset(const std::string & presetName) {
 		return;
 	}
 
-	std::string endpoint = "/rest/v1/" + TABLE_NAME + "?user_id=eq." + userId_ + "&preset_name=eq." + presetName + "&select=preset_data";
-
-	HttpResponse res = httpGet(endpoint);
-
-	if (res.success) {
-		try {
-			ofJson responseJson = ofJson::parse(res.body);
-
-			if (responseJson.is_array() && !responseJson.empty()) {
-				std::string presetData = responseJson[0]["preset_data"].dump();
-				deserializeJsonToScene(presetData);
-				ofLogNotice("ofxSurfingSupabase") << "loadPreset(): ✓ Preset loaded and applied";
-			} else {
-				ofLogWarning("ofxSurfingSupabase") << "Preset not found";
-			}
-		} catch (std::exception & e) {
-			ofLogError("ofxSurfingSupabase") << "loadPreset(): Failed to parse response: " << e.what();
-		}
-	} else {
-		ofLogError("ofxSurfingSupabase") << "loadPreset(): ✗ Failed to load preset: HTTP " << res.statusCode;
-		if (bGui) {
-			ofLogError("ofxSurfingSupabase") << res.body;
-		}
+	if (isLoadingRemote_.exchange(true)) {
+		ofLogWarning("ofxSurfingSupabase") << "loadPreset(): Load already in progress";
+		return;
 	}
+
+	std::string endpoint = "/rest/v1/" + TABLE_NAME + "?user_id=eq." + userId_ + "&preset_name=eq." + presetName + "&select=preset_data";
+	std::string presetNameCopy = presetName;
+
+	std::thread([this, endpoint, presetNameCopy]() {
+		HttpResponse res = httpGet(endpoint);
+
+		if (res.success) {
+			try {
+				ofJson responseJson = ofJson::parse(res.body);
+
+				if (responseJson.is_array() && !responseJson.empty() && responseJson[0].contains("preset_data")) {
+					std::string presetData = responseJson[0]["preset_data"].dump();
+					{
+						std::lock_guard<std::mutex> lock(pendingPresetMutex_);
+						pendingPresetJson_ = presetData;
+						pendingPresetName_ = presetNameCopy;
+						hasPendingPreset_ = true;
+					}
+				} else {
+					ofLogWarning("ofxSurfingSupabase") << "loadPreset(): Preset not found";
+				}
+			} catch (std::exception & e) {
+				ofLogError("ofxSurfingSupabase") << "loadPreset(): Failed to parse response: " << e.what();
+			}
+		} else {
+			ofLogError("ofxSurfingSupabase") << "loadPreset(): ✗ Failed to load preset: HTTP " << res.statusCode;
+			if (bDebug) {
+				ofLogError("ofxSurfingSupabase") << res.body;
+			}
+		}
+
+		isLoadingRemote_ = false;
+	}).detach();
 }
 
 //--------------------------------------------------------------
@@ -711,7 +792,7 @@ void ofxSurfingSupabase::deletePresetRemote(const std::string & presetName) {
 		selectedPresetIndexRemote.setMax(presetsNamesRemote.size() - 1);
 	} else {
 		ofLogError("ofxSurfingSupabase") << "deletePresetRemote(): ✗ Failed to delete preset: HTTP " << res.statusCode;
-		if (bGui) {
+		if (bDebug) {
 			ofLogError("ofxSurfingSupabase") << res.body;
 		}
 	}
@@ -764,7 +845,7 @@ void ofxSurfingSupabase::refreshPresetListRemote() {
 		}
 	} else {
 		ofLogError("ofxSurfingSupabase") << "refreshPresetListRemote(): ✗ Failed to refresh preset list: HTTP " << res.statusCode;
-		if (bGui) {
+		if (bDebug) {
 			ofLogError("ofxSurfingSupabase") << res.body;
 		}
 	}
@@ -793,7 +874,7 @@ void ofxSurfingSupabase::clearDatabase() {
 		selectedPresetIndexRemote.setMax(-1);
 	} else {
 		ofLogError("ofxSurfingSupabase") << "clearDatabase(): ✗ Failed to clear database: HTTP " << res.statusCode;
-		if (bGui) {
+		if (bDebug) {
 			ofLogError("ofxSurfingSupabase") << res.body;
 		}
 	}

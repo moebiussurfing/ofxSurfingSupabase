@@ -8,7 +8,7 @@ void ofApp::setup() {
 	ofSetFrameRate(60);
 
 // Move window
-#if 1 
+#if 1
 	//ofSetWindowPosition(-ofGetWidth()-100, 100);//left monitor
 	ofSetWindowPosition(3840 + 2160 + 100, 100); //right 4th FHD monitor
 #endif
