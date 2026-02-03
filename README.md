@@ -3,6 +3,8 @@
 ### _WIP: blueprint currenltly under development. Use at your own risk!_
 ### _Login works but preset saving/loading workflow may have issues._
 
+[](Screenshot.png)
+
 Presets (**ofParametersGroup**) management with Supabase backend database for openFrameworks.
 
 ## Example
@@ -48,29 +50,11 @@ PASSWORD=testpass123
 ## Workflow
 
 1. **Adjust scene parameters** (colors, amount, scale, etc.)
-2. **Press Space** or click "Save To Remote" → Uploads to cloud
-3. **Browse presets** with arrow keys or ◀ ▶ buttons
+2. **Browse presets** with arrow keys or ◀ ▶ buttons
+3. **Press S** or click "Save To Remote" → Uploads to cloud
 4. **Press L** or click "Load & Apply" → Restores from cloud
 5. **NO local JSON files** are created (pure remote)
-6. Use **Auto Load** to auto-load on preset change
-
----
-
-## Troubleshooting
-
-**Red status / Not connected:**
-- Check `credentials.txt` exists in `bin/data/`
-- Verify URL and API key are correct
-- Check network connection
-
-**Authentication failed:**
-- Email/password incorrect
-- User not created in Supabase dashboard
-- Email confirmation not disabled
-
-**No presets shown:**
-- Database empty (upload some first)
-- RLS policies not configured correctly
+6. Use **Auto Load** to auto-load on preset index change
 
 ---
 
@@ -86,8 +70,8 @@ db.setup(scene.params); // Link to scene`s ofParameterGroup
 ## TODO
 
 - Threading loader to avoid blocking UI
-- Fix overwrite preset issues
-- Integrate with your own presets manager
+- Fix overwrite, new preset, save copy... preset issues
+- Integrate with your own external presets manager
 - Add custom preset naming
-- Add user login authentication UI
+- Add user login authentication UI, auth0
 - Implement preset categories/tags to handle multiple kits

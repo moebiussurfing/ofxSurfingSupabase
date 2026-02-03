@@ -11,25 +11,26 @@ private:
 
 public:
   void setup(); // Only for using with a external presets manager
-  void setup(ofParameterGroup & sceneParams);
+  void setup(ofParameterGroup & sceneParams); // Main setup passing target param group
 
   void update();
-  void draw();
+  void draw();	
   void exit();
+  void keyPressed(int key);
 
   //--
    
   // Remote operations
   void savePreset(const std::string& presetName);
   void loadPreset(const std::string& presetName);
-  void deletePreset(const std::string& presetName);
-  void refreshPresetList();
+  void deletePresetRemote(const std::string& presetName);
+  void refreshPresetListRemote();
   void clearDatabase();
   
   // Browse presets
-  void selectNext();
-  void selectPrevious();
-  void selectedUpdate();
+  void selectNextRemote();
+  void selectPreviousRemote();
+  void selectedIndexRemoteUpdate();
   
   // Direct scene operations (no local files)
   // void sendSceneDirect();
@@ -39,27 +40,29 @@ public:
   ofParameter<bool> bConnected{"Connected", false};
   ofParameter<bool> bRemoteMode{"Remote Mode", true};
   ofParameter<bool> bAutoSave{"Auto Save", false};
-  ofParameter<bool> bAutoLoad{"Auto Load", false};
+  ofParameter<bool> bAutoLoad{"Auto Load", true};
   ofParameter<bool> bGui{"Show Gui", true};
-  // ofParameter<bool> bShowPresetManager{"Show Preset Manager", true};
+  ofParameter<bool> bKeys{"Keys", true};
+  ofParameter<bool> bDebug{"Debug", true};
   ofParameter<void> vReconnect{"Reconnect"};
-  // ofParameter<void> vLoadAndApply{"Load"};
-  // ofParameter<void> vSaveSceneDirect{"Save Direct"};
   ofParameter<void> vSaveToRemote{"Save to Remote"};
   ofParameter<void> vLoadFromRemote{"Load from Remote"};
-  ofParameter<void> vRefreshList{"Refresh List"};
-  ofParameter<void> vDeleteSelected{"Delete Selected"};
+  ofParameter<void> vRefreshListRemote{"Refresh List"};
+  ofParameter<void> vDeleteSelectedRemote{"Delete Selected"};
   ofParameter<void> vClearDatabase{"Clear Database"};
-  ofParameter<void> vSelectNext{">"};
-  ofParameter<void> vSelectPrevious{"<"};
-  ofParameter<int> selectedPresetIndex_{"Selected",0,0,10};
+  ofParameter<void> vSelectNextRemote{">"};
+  ofParameter<void> vSelectPreviousRemote{"<"};
+  ofParameter<int> selectedPresetIndexRemote{"Selected",0,0,10};
+  // ofParameter<bool> bShowPresetManager{"Show Preset Manager", true};
+  // ofParameter<void> vLoadAndApply{"Load"};
+  // ofParameter<void> vSaveSceneDirect{"Save Direct"};
   
   // Status
   std::string getConnectionStatus() const;
   bool isConnected() const { return bConnected; }
   
 private:
-  int selectedPresetIndex__Prev = -1;
+  int selectedPresetIndexRemotePrev = -1;
 
   // Configuration
   struct SupabaseConfig {
@@ -103,8 +106,8 @@ private:
   
   ofParameterGroup* sceneParams_;
   
-  std::vector<std::string> presetNames_;
-  // int selectedPresetIndex_;
+  std::vector<std::string> presetsNamesRemote;
+  // int selectedPresetIndexRemote;
   
   // UI
   ofxPanel gui_;
@@ -113,16 +116,16 @@ private:
   
   // Event listeners
   ofEventListener e_vReconnect;
-  // ofEventListener e_vSaveSceneDirect;
-  // ofEventListener e_vLoadAndApply;
   ofEventListener e_vSaveToRemote;
   ofEventListener e_vLoadFromRemote;
-  ofEventListener e_vRefreshList;
+  ofEventListener e_vRefreshListRemnote;
   ofEventListener e_vDeleteSelected;
   ofEventListener e_vClearDatabase;
-  ofEventListener e_vSelectNext;
-  ofEventListener e_vSelectPrevious;
-  ofEventListener e_selectedPresetIndex_;
+  ofEventListener e_vSelectNextRemote;
+  ofEventListener e_vSelectPreviousRemote;
+  ofEventListener e_selectedPresetIndexRemote;
+  // ofEventListener e_vSaveSceneDirect;
+  // ofEventListener e_vLoadAndApply;
   
   // Constants
   static const std::string CREDENTIALS_PATH;
