@@ -2,8 +2,8 @@
 # CURRENT PROJECT
 #########################
 
-*.jpg
-*.png
+# *.jpg
+# *.png
 example/enc_temp_folder/*
 /example/enc_temp_folder
 
