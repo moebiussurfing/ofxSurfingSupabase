@@ -9,12 +9,16 @@ void ofApp::setup() {
 
 // Move window
 #if 1
-	//ofSetWindowPosition(-ofGetWidth()-100, 100);//left monitor
-	ofSetWindowPosition(3840 + 2160 + 100, 100); //right 4th FHD monitor
+	//ofSetWindowPosition(-ofGetWidth()-100, 100); // left monitor
+	ofSetWindowPosition(3840 + 2160 + 100, 100); // right 4th FHD monitor
 #endif
+
+	//--
 
 	// Setup database
 	db.setup(scene.params);
+
+	//--
 
 	// Gui scene
 	guiScene.setup(scene.params);

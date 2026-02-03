@@ -491,6 +491,7 @@ void ofxSurfingSupabase::draw() {
 	// Draw status
 	int x = gui_.getPosition().x + 5;
 	int y = gui_.getPosition().y + gui_.getHeight() + 20;
+	int p = 20;
 
 	if (bDebug) {
 
@@ -506,7 +507,7 @@ void ofxSurfingSupabase::draw() {
 		}
 		ofDrawBitmapStringHighlight(status, x, y, ofColor::black, statusColor);
 
-		y = y + 20;
+		y = y + p;
 		if (isLoadingRemote_.load()) {
 			static const std::string spinner = "|/-\\";
 			char tick = spinner[ofGetFrameNum() % spinner.size()];
@@ -519,7 +520,7 @@ void ofxSurfingSupabase::draw() {
 
 		// Selected
 		if (!presetsNamesRemote.empty() && selectedPresetIndexRemote >= 0 && selectedPresetIndexRemote < presetsNamesRemote.size()) {
-			y = y + 20;
+			y = y + p;
 			std::string presetInfo = "Selected: " + presetsNamesRemote[selectedPresetIndexRemote.get()];
 			presetInfo += " (" + ofToString(selectedPresetIndexRemote.get()) + "/" + ofToString(presetsNamesRemote.size() - 1) + ")";
 			ofSetColor(255);
@@ -529,8 +530,10 @@ void ofxSurfingSupabase::draw() {
 		// Print presets names
 		y = y + 5;
 		for (int i = 0; i < presetsNamesRemote.size(); i++) {
-			y = y + 20;
+			p = 15;
+			y = y + p;
 			string s = "";
+			if (i < 10) s += " ";
 			s += ofToString(i) + " ";
 			s += presetsNamesRemote[i];
 			if (i == selectedPresetIndexRemote) s += " *";
@@ -542,24 +545,25 @@ void ofxSurfingSupabase::draw() {
 
 	// Keys info
 	if (bKeys) {
+		p = 20;
 		x = ofGetWidth() - 200;
-		y = ofGetHeight() - 9 * 20;
+		y = ofGetHeight() - 9 * p;
 		ofDrawBitmapStringHighlight("KEYS", x, y);
-		y = y + 20;
+		y = y + p;
 		ofDrawBitmapStringHighlight("G: Toggle Gui", x, y);
-		y = y + 20;
+		y = y + p;
 		ofDrawBitmapStringHighlight("D: Toggle Debug", x, y);
-		y = y + 20;
+		y = y + p;
 		ofDrawBitmapStringHighlight(">: Next Preset", x, y);
-		y = y + 20;
+		y = y + p;
 		ofDrawBitmapStringHighlight("<: Previous Preset", x, y);
-		y = y + 20;
+		y = y + p;
 		ofDrawBitmapStringHighlight("L: Load", x, y);
-		y = y + 20;
+		y = y + p;
 		ofDrawBitmapStringHighlight("S: Save (Overwrite)", x, y);
-		y = y + 20;
+		y = y + p;
 		ofDrawBitmapStringHighlight("N: Save New", x, y);
-		y = y + 20;
+		y = y + p;
 		ofDrawBitmapStringHighlight("R: Refresh", x, y);
 	}
 }
@@ -807,7 +811,10 @@ void ofxSurfingSupabase::refreshPresetListRemote() {
 		return;
 	}
 
-	std::string endpoint = "/rest/v1/" + TABLE_NAME + "?user_id=eq." + userId_ + "&select=preset_name&order=created_at.desc";
+	//// Sort descendent
+	//std::string endpoint = "/rest/v1/" + TABLE_NAME + "?user_id=eq." + userId_ + "&select=preset_name&order=created_at.desc";
+	// Sort ascendent
+	std::string endpoint = "/rest/v1/" + TABLE_NAME + "?user_id=eq." + userId_ + "&select=preset_name&order=created_at.asc";
 
 	HttpResponse res = httpGet(endpoint);
 
@@ -827,7 +834,7 @@ void ofxSurfingSupabase::refreshPresetListRemote() {
 
 			ofLogNotice("ofxSurfingSupabase") << "✓ Found " << presetsNamesRemote.size() << " presets";
 
-			//clamp selected index
+			// Clamp selected index
 			selectedPresetIndexRemote.setMin(0);
 			selectedPresetIndexRemote.setMax(presetsNamesRemote.size() - 1);
 
@@ -835,7 +842,7 @@ void ofxSurfingSupabase::refreshPresetListRemote() {
 				selectedPresetIndexRemote = 0;
 			}
 
-			//clamp index
+			// Clamp index
 			if (selectedPresetIndexRemote >= presetsNamesRemote.size()) {
 				selectedPresetIndexRemote = presetsNamesRemote.empty() ? -1 : presetsNamesRemote.size() - 1;
 			}
