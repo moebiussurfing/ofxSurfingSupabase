@@ -16,7 +16,6 @@ ofxSurfingSupabase/
 │   │   ├── ofxSurfingHelpersParameters.h
 │   │   └── surfingSceneTesters.h
 │   ├── FILE-STRUCTURE.md
-│   ├── README.md
 │   ├── addons.make
 │   └── generate-FILE-STRUCTURE.py
 ├── libs/
@@ -26,7 +25,9 @@ ofxSurfingSupabase/
 ├── src/
 │   ├── ofxSurfingSupabase.cpp
 │   └── ofxSurfingSupabase.h
+├── FILE-STRUCTURE.md
 ├── README.md
+├── Screenshot.png
 ├── addon_config.mk
 └── generate-FILE-STRUCTURE.py
 ```
